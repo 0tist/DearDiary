@@ -1,0 +1,3 @@
+{"type":"user","message":{"content":"finish wiring the --theme flag"}}
+{"type":"assistant","message":{"content":"Done, flag is parsed and applied."}}
+{"type":"user","message":{"content":"start on --output flag next"}}
