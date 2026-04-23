@@ -44,12 +44,13 @@ assert_file_contains() {
     assert_contains "$(cat "$file" 2>/dev/null || echo)" "$needle" "$msg"
 }
 
-# Create a temp workspace and cleanup on EXIT. Returns path via echo.
+# Create a temp workspace and register cleanup on script EXIT in the caller's shell.
+# Usage: setup_tmp tmp    # sets $tmp to a new temp dir, cleans up when test script exits
 setup_tmp() {
-    local tmp
-    tmp=$(mktemp -d)
-    trap "rm -rf '$tmp'" EXIT
-    echo "$tmp"
+    local -n _setup_tmp_ref="$1"
+    _setup_tmp_ref=$(mktemp -d)
+    # shellcheck disable=SC2064
+    trap "rm -rf '$_setup_tmp_ref'" EXIT
 }
 
 # Build a fake `claude` binary that echoes the file at $1 and put it first on PATH.
