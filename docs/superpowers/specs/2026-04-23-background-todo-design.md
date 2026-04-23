@@ -1,50 +1,63 @@
-# Background Auto-Updating TODO — Design
+---
+theme: default
+paging: "%d / %d"
+---
 
-**Date:** 2026-04-23
-**Status:** Approved (pending user review of this written spec)
-**Owner:** jayesh@aiatella.com
+# Background Auto-Updating TODO
 
-## 1. Purpose
+Design spec — 2026-04-23
+Owner: jayesh@aiatella.com
+Status: pending user review
 
-Maintain a single, always-fresh TODO list at `~/Housekeeping/TODO.md` that is kept in sync automatically by every Claude Code session the user runs — across any project, any working directory — so the user stays grounded on what needs to be done without manually updating a list.
+---
 
-The TODO survives: long-running single sessions, parallel concurrent sessions, short throwaway sessions, and crashes.
+## 1 · Purpose
 
-## 2. Non-goals
+Keep a single, always-fresh TODO at `~/Housekeeping/TODO.md` that is
+updated automatically by every Claude Code session the user runs —
+across any project, any working directory.
 
-- Task management features (priorities, due dates, dependencies beyond what the markdown expresses).
-- Sync to any external system (Linear, Jira, Todoist, etc.).
-- Per-project TODOs. One global list is the explicit choice.
-- Replacing Claude Code's in-session TaskCreate tooling. This system operates at a higher level (across sessions), not inside one.
+Survives: long sessions, parallel sessions, short sessions, crashes.
 
-## 3. Architecture
+---
 
-Three cooperating pieces, orchestrated by Claude Code hooks registered in the user's global `~/.claude/settings.json` so they fire in every session regardless of project:
+## 2 · Non-goals
+
+- Full task management (priorities, due dates, dependency graphs)
+- Sync to external systems (Linear, Jira, Todoist)
+- Per-project TODOs — **one global list** is the explicit choice
+- Replacing in-session `TaskCreate` — this operates across sessions, not inside one
+
+---
+
+## 3 · Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  Any Claude Code session (slides, AortaAIM, anywhere)    │
 └──────────────────────────────────────────────────────────┘
-            │ SessionStart             │ Stop / SessionEnd
-            ▼                          ▼
-  inject current TODO         run update script
-  into session context        (throttled + locked)
-                                       │
-                                       ▼
-                          ┌───────────────────────────┐
-                          │  ~/Housekeeping/          │
-                          │    TODO.md           ← source of truth
-                          │    .todo-update.lock │ flock target
-                          │    .todo-last-update │ mtime-based throttle
-                          │    .todo-events.log  │ debug trail
-                          └───────────────────────────┘
+         │ SessionStart          │ Stop / SessionEnd
+         ▼                       ▼
+  inject current TODO     run update script
+  into session context    (throttled + locked)
+                                 │
+                                 ▼
+                  ┌──────────────────────────────┐
+                  │  ~/Housekeeping/             │
+                  │    TODO.md          ← truth  │
+                  │    .todo-update.lock         │
+                  │    .todo-last-update         │
+                  │    .todo-events.log          │
+                  └──────────────────────────────┘
 ```
 
-## 4. Components
+Three pieces, orchestrated by hooks in **global** `~/.claude/settings.json`.
 
-### 4.1 `~/Housekeeping/TODO.md`
+---
 
-Human-readable markdown, the single source of truth. Stable section headers so the updater can diff cleanly.
+## 4.1 · `TODO.md` schema
+
+Human-readable markdown. Stable section headers so the updater can diff cleanly.
 
 ```markdown
 # TODO
@@ -62,38 +75,53 @@ _Last updated: 2026-04-23 14:32 UTC by session <id> (cwd: ~/slides)_
 - [x] 2026-04-22 [slides] initial CLI scaffold
 ```
 
-Items are tagged `[project]` for multi-project visibility. The user may edit this file manually at any time; the updater preserves unknown content.
+Items tagged `[project]`. User may edit manually; updater preserves unknown content.
 
-### 4.2 `~/.claude/todo-update.sh`
+---
 
-Updater script. Invoked by hooks. Has two phases:
+## 4.2 · `todo-update.sh` — Phase A (front end)
 
-**Phase A — front end (runs synchronously in the hook, must be fast):**
+Runs **synchronously in the hook**. Must return in milliseconds.
 
-1. Read hook JSON input from stdin, capture `transcript_path`, `session_id`, `cwd`, and the trigger argument (`stop` / `end`).
-2. Fork a detached background child that runs Phase B. The parent returns immediately (exit 0) so the Claude Code hook is unblocked within milliseconds. Stdout/stderr of the child are redirected to `~/Housekeeping/.todo-events.log`.
+1. Read hook JSON from stdin → capture `transcript_path`, `session_id`,
+   `cwd`, trigger (`stop` / `end`).
+2. Fork a **detached background child** that runs Phase B.
+3. Redirect child's stdout/stderr to `~/Housekeeping/.todo-events.log`.
+4. Parent exits 0 immediately → Claude Code hook unblocked.
 
-**Phase B — background worker:**
+---
 
-1. Acquire `flock` on `~/Housekeeping/.todo-update.lock` (non-blocking). If not acquired, exit 0.
-2. Throttle check: if trigger is `stop` and `mtime(~/Housekeeping/.todo-last-update)` is less than 5 minutes ago, release lock and exit 0. `end` invocations skip this check.
-3. Extract the last ~50 turns of the transcript (JSONL), truncated to ~30 KB of text.
-4. Run `timeout 60 claude -p --model claude-haiku-4-5-20251001` with a tight prompt: current TODO + recent activity → updated TODO that preserves structure and untouched items.
-5. Validate output: must contain `# TODO` header and the three standard section headers (`## Active`, `## Blocked / Waiting`, `## Done (last 7 days)`). On failure, leave `TODO.md` untouched and log the event.
-6. Atomic write: `TODO.md.tmp` → `rename` → `TODO.md`.
-7. `touch ~/Housekeeping/.todo-last-update`.
-8. Append a one-line JSON record to `~/Housekeeping/.todo-events.log` (timestamp, session id, cwd, trigger, result).
-9. Release lock (automatic via `flock` on process exit).
+## 4.2 · `todo-update.sh` — Phase B (worker)
 
-Exits 0 on any internal error so Claude Code is never blocked by hook failure.
+Runs in background. Not on the hook's critical path.
 
-### 4.3 `~/.claude/todo-session-start.sh`
+1. `flock -n` on `.todo-update.lock` → exit 0 if held by another session.
+2. Throttle: if trigger=`stop` and last update <5 min ago → exit.
+   `end` skips this check.
+3. Extract last ~50 turns of transcript, capped at ~30 KB.
+4. `timeout 60 claude -p --model claude-haiku-4-5-20251001 "<prompt>"`
+   with: current TODO + recent activity → updated TODO.
+5. Validate output has `# TODO` + the 3 standard headers. If not → skip write.
+6. Atomic: `TODO.md.tmp` → `rename` → `TODO.md`.
+7. `touch .todo-last-update`; append JSON line to `.todo-events.log`.
+8. Release flock (auto on exit).
 
-Runs on `SessionStart`. Reads `~/Housekeeping/TODO.md` and emits Claude Code `additionalContext` JSON so the current TODO is visible to the session from the first turn.
+Any internal error → exit 0. Claude Code is never blocked.
 
-If the file does not exist, emits no context (non-fatal).
+---
 
-### 4.4 Hook configuration (`~/.claude/settings.json`)
+## 4.3 · `todo-session-start.sh`
+
+Runs on `SessionStart` in every project.
+
+- Reads `~/Housekeeping/TODO.md`.
+- Emits Claude Code `additionalContext` JSON → current TODO visible to the
+  session from turn 1.
+- If `TODO.md` missing → no context, non-fatal.
+
+---
+
+## 4.4 · Hook config (`~/.claude/settings.json`)
 
 ```json
 {
@@ -111,103 +139,118 @@ If the file does not exist, emits no context (non-fatal).
 }
 ```
 
-Installer merges into any existing hook entries rather than clobbering.
+Installer **merges** into existing hooks, never clobbers.
 
-### 4.5 `~/Housekeeping/install.sh` and `uninstall.sh`
+---
 
-- `install.sh` writes the two scripts under `~/.claude/`, patches `~/.claude/settings.json` (merging), creates `TODO.md` from a starter template if absent, and runs a smoke test.
-- `uninstall.sh` is the inverse: removes the hook entries and the two scripts. Does not delete `TODO.md` or `.todo-events.log` (user data).
+## 4.5 · `install.sh` / `uninstall.sh`
 
-## 5. Data flow
+`install.sh`:
+- Writes the two scripts to `~/.claude/`.
+- Patches `~/.claude/settings.json` (merge, not overwrite).
+- Creates `TODO.md` from a starter template if absent.
+- Runs smoke test before exiting.
+
+`uninstall.sh`:
+- Removes hook entries + scripts.
+- **Does not** delete `TODO.md` or `.todo-events.log` (user data).
+
+---
+
+## 5 · Data flow (one cycle)
 
 ```
 User prompts Claude in ~/slides
-        │
         ▼
-Claude does work (edits files, runs commands, etc.)
-        │
+Claude does work
         ▼
-Claude finishes response  ──► Stop hook fires
-        │
-        ▼
-todo-update.sh stop
-  ├─ try flock: got it? ──► no: exit 0 (another session updating)
-  │                          │
-  │                          ▼  (retries next turn)
-  └─ got lock: mtime check
-      ├─ <5 min since last update? ──► yes: release lock, exit 0
-      └─ ≥5 min: proceed
-          │
-          ▼
-     read transcript (last ~50 turns, truncated to ~30KB)
-          │
-          ▼
-     spawn: timeout 60 claude -p --model haiku "<prompt>"
-          │
-          ▼
-     validate output structure
-          │
-          ▼
-     write TODO.md.tmp → rename → TODO.md
-          │
-          ▼
-     touch .todo-last-update
-     append event line to .todo-events.log
-     release flock (auto on exit)
+Stop hook fires → todo-update.sh (Phase A: fork & return instantly)
+        ▼ (child)
+flock -n .todo-update.lock
+  ├─ busy? → exit 0, retry next Stop
+  └─ got it
+      ▼
+  mtime(.todo-last-update) <5 min?  yes → exit
+  no ▼
+  read transcript (last 50 turns, 30KB cap)
+  timeout 60 claude -p --model haiku
+  validate → TODO.md.tmp → rename
+  touch .todo-last-update ; log event
+  release flock
 ```
 
-`SessionEnd` follows the same path but skips the mtime check, guaranteeing a final reconciliation.
+`SessionEnd` = same path, skips throttle → guaranteed final reconciliation.
 
-## 6. Concurrency safety
+---
 
-The central invariant: **at most one updater writes `TODO.md` at a time, across all Claude sessions on the machine.**
+## 6 · Concurrency safety
 
-Enforced by `flock`:
+**Invariant:** at most one updater writes `TODO.md` at a time, machine-wide.
 
 ```bash
 exec 200>~/Housekeeping/.todo-update.lock
 flock -n 200 || exit 0
-# critical section: read, reconcile, write TODO.md
-# lock auto-released when script exits or is killed
+# critical section: read, reconcile, write
+# lock auto-released on exit / kill
 ```
 
-- Non-blocking (`-n`) means contention never queues; instead the losing session exits 0 and retries on its next Stop.
-- Kernel-held locks are released automatically on process death, so no stale-lock recovery logic is needed.
-- Parallel sessions both contribute over time: within a few hook cycles, both will have been reconciled.
+- `-n` = non-blocking → losing session exits, retries on next Stop.
+- Kernel-held locks auto-release on death → no stale-lock recovery logic.
+- Parallel sessions both contribute within a few cycles.
 
-## 7. Failure modes
+---
+
+## 7 · Failure modes
 
 | Failure | Behavior |
 |---|---|
-| Lock held by other session | Current hook exits 0 silently; next Stop retries. `SessionEnd` is the backstop. |
-| `claude -p` times out or errors | `timeout 60` kills it; updater exits 0; `TODO.md` untouched; event logged. |
-| Model returns malformed markdown | Structure check fails; write skipped; event logged. |
-| Disk full / rename fails | `.tmp` file lingers; next run overwrites it. `TODO.md` never partially written. |
-| Stale `.todo-last-update` from clock skew | Worst case: one extra or one skipped update. Self-healing. |
-| User manually edits `TODO.md` mid-update | Lock serializes writes. User's edits survive because the updater preserves unknown lines. |
-| Hook misbehaves | All hooks exit 0 on any internal error; Claude Code is never blocked. |
-| `claude` CLI not on PATH in hook env | Installer probes for it at install time; script uses an absolute path written at install. |
+| Lock held by other session | Exit 0 silently; next Stop retries; SessionEnd = backstop |
+| `claude -p` timeout/error | `timeout 60` kills it; TODO untouched; event logged |
+| Malformed model output | Structure check fails; write skipped; event logged |
+| Disk full / rename fails | `.tmp` lingers; next run overwrites; TODO.md never partial |
+| Clock skew on `.todo-last-update` | Worst case 1 extra / 1 skipped update; self-healing |
+| User edits `TODO.md` mid-update | Lock serializes; updater preserves unknown lines |
+| Hook misbehaves | Exits 0 on any error; Claude Code never blocked |
+| `claude` not on hook `$PATH` | Installer probes; script uses absolute path |
 
-## 8. Testing
+---
+
+## 8 · Testing
 
 Tests live at `~/Housekeeping/tests/`.
 
-- **Golden-file test:** feed a mock transcript + existing `TODO.md` into the updater; diff output against a committed golden file.
-- **Lock test:** spawn two copies of the updater concurrently; assert only one wrote, and the other exited 0.
-- **Throttle test:** invoke twice within 10 s; assert the second is a no-op. Then invoke with `end` trigger; assert it bypasses the throttle.
-- **Malformed-output test:** stub `claude -p` to return garbage; assert `TODO.md` is untouched and an event is logged.
-- **Smoke test:** real end-to-end run against a throwaway `TODO.md`; printed to stdout so the user sees the result before going live. Run automatically at the end of `install.sh`.
+- **Golden file** — mock transcript + TODO.md → diff against committed expected output.
+- **Lock** — spawn 2 updaters concurrently → assert exactly one wrote.
+- **Throttle** — invoke twice in 10 s → 2nd is no-op; `end` trigger bypasses.
+- **Malformed output** — stub `claude -p` with garbage → TODO untouched, event logged.
+- **Smoke** — real end-to-end run on throwaway file, printed to stdout, auto-run by `install.sh`.
 
-## 9. Cost and performance budget
+---
 
-- Model: Haiku 4.5 (fast, cheap). Expected per-update cost: cents.
-- Throttle: 5 minutes minimum between `Stop`-triggered updates, so at most ~12 updates/hour per machine regardless of session count.
-- Each update is background-spawned — the Stop hook itself returns in well under a second, so user-facing Claude is not slowed.
-- `timeout 60` caps worst-case hang.
+## 9 · Cost & performance budget
 
-## 10. Open questions
+- **Model:** Haiku 4.5 — fast, cheap. Cents per update.
+- **Throttle:** ≥5 min between `Stop`-triggered updates → max ~12/hr machine-wide.
+- **Hook latency:** Phase A forks & exits → hook returns well under a second.
+  User-facing Claude is never slowed.
+- **Hang cap:** `timeout 60` on every `claude -p`.
 
-None blocking. Possible future iterations (not in scope now):
-- Per-project TODO rollups derived from the central file.
-- A small CLI (`todo`) to view/edit from the terminal without opening the file.
-- Weekly automatic archival of completed items older than 7 days.
+---
+
+## 10 · Open questions & future work
+
+**None blocking.** Out of scope for now:
+
+- Per-project rollups derived from the central file.
+- `todo` CLI for quick view/edit from the terminal.
+- Weekly auto-archival of items older than 7 days from `## Done`.
+
+---
+
+## End
+
+Spec lives at: `docs/superpowers/specs/2026-04-23-background-todo-design.md`
+
+View with:  `slides <this-file>`
+
+Next step after approval: invoke `writing-plans` skill for implementation plan.
