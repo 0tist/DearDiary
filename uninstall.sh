@@ -30,6 +30,14 @@ for name in todo-slides; do
     fi
 done
 
+# Remove shell alias symlink
+BASHRC_D="$HOME/.bashrc.d"
+target="$BASHRC_D/housekeeping-aliases.sh"
+if [ -L "$target" ]; then
+    rm -f "$target"
+    echo "    removed symlink $target"
+fi
+
 # Strip hook entries
 if [ -f "$SETTINGS" ]; then
     python3 - "$SETTINGS" <<'PY'

@@ -37,6 +37,12 @@ for pair in "todo-slides.sh:todo-slides"; do
     echo "    linked $dst -> $src"
 done
 
+# 1c. Symlink shell aliases into ~/.bashrc.d/ (sourced by ~/.bashrc)
+BASHRC_D="$HOME/.bashrc.d"
+mkdir -p "$BASHRC_D"
+ln -sfn "$REPO_DIR/shell/housekeeping-aliases.sh" "$BASHRC_D/housekeeping-aliases.sh"
+echo "    linked $BASHRC_D/housekeeping-aliases.sh -> $REPO_DIR/shell/housekeeping-aliases.sh"
+
 # 2. Merge settings.json
 python3 - "$SETTINGS" <<'PY'
 import json, os, sys

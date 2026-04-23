@@ -35,9 +35,12 @@ slides docs/superpowers/specs/2026-04-23-background-todo-design.md
 **View TODO.md as slides** (one slide per section):
 
 ```bash
-todo-slides                  # ~/Housekeeping/TODO.md by default
-todo-slides some-other.md    # or pass any md file
+todo         # alias → todo-slides
+todo-slides  # same thing; pass a path to view a different md file
 ```
+
+The `todo` alias is installed via `~/.bashrc.d/housekeeping-aliases.sh`
+(a symlink into `shell/housekeeping-aliases.sh` in this repo).
 
 ## Tests
 
