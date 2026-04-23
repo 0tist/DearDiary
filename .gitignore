@@ -1,0 +1,10 @@
+# Runtime state for the auto-TODO system
+TODO.md
+TODO.md.tmp
+.todo-update.lock
+.todo-last-update
+.todo-events.log
+
+# Editor / OS
+.DS_Store
+*.swp
