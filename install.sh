@@ -15,13 +15,24 @@ TODO_FILE="$REPO_DIR/TODO.md"
 echo "==> Installing from $REPO_DIR"
 mkdir -p "$CLAUDE_DIR"
 
-# 1. Symlink scripts
+# 1. Symlink hook scripts into ~/.claude/
 for s in todo-update.sh todo-session-start.sh; do
     src="$REPO_DIR/scripts/$s"
     dst="$CLAUDE_DIR/$s"
     if [ ! -x "$src" ]; then
         chmod +x "$src"
     fi
+    ln -sfn "$src" "$dst"
+    echo "    linked $dst -> $src"
+done
+
+# 1b. Symlink user-facing CLI helpers into ~/.local/bin/
+LOCAL_BIN="$HOME/.local/bin"
+mkdir -p "$LOCAL_BIN"
+for pair in "todo-slides.sh:todo-slides"; do
+    src="$REPO_DIR/scripts/${pair%%:*}"
+    dst="$LOCAL_BIN/${pair##*:}"
+    [ -x "$src" ] || chmod +x "$src"
     ln -sfn "$src" "$dst"
     echo "    linked $dst -> $src"
 done

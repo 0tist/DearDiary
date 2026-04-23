@@ -32,6 +32,13 @@ bash uninstall.sh
 slides docs/superpowers/specs/2026-04-23-background-todo-design.md
 ```
 
+**View TODO.md as slides** (one slide per section):
+
+```bash
+todo-slides                  # ~/Housekeeping/TODO.md by default
+todo-slides some-other.md    # or pass any md file
+```
+
 ## Tests
 
 ```bash

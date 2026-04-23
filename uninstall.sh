@@ -9,7 +9,7 @@ SETTINGS="$CLAUDE_DIR/settings.json"
 
 echo "==> Uninstalling auto-TODO hooks"
 
-# Remove symlinks (only if they point at our scripts)
+# Remove hook symlinks (only if they point at our scripts)
 for s in todo-update.sh todo-session-start.sh; do
     target="$CLAUDE_DIR/$s"
     if [ -L "$target" ]; then
@@ -17,6 +17,16 @@ for s in todo-update.sh todo-session-start.sh; do
         echo "    removed symlink $target"
     elif [ -e "$target" ]; then
         echo "    WARNING: $target exists and is not a symlink — leaving in place"
+    fi
+done
+
+# Remove user-facing CLI helper symlinks
+LOCAL_BIN="$HOME/.local/bin"
+for name in todo-slides; do
+    target="$LOCAL_BIN/$name"
+    if [ -L "$target" ]; then
+        rm -f "$target"
+        echo "    removed symlink $target"
     fi
 done
 
