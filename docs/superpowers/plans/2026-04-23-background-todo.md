@@ -161,12 +161,13 @@ assert_file_contains() {
     assert_contains "$(cat "$file" 2>/dev/null || echo)" "$needle" "$msg"
 }
 
-# Create a temp workspace and cleanup on EXIT. Returns path via echo.
+# Create a temp workspace and register cleanup on script EXIT in the caller's shell.
+# Usage: setup_tmp tmp    # sets $tmp in caller's scope (must NOT be called via $(...))
 setup_tmp() {
-    local tmp
-    tmp=$(mktemp -d)
-    trap "rm -rf '$tmp'" EXIT
-    echo "$tmp"
+    local -n _setup_tmp_ref="$1"
+    _setup_tmp_ref=$(mktemp -d)
+    # shellcheck disable=SC2064
+    trap "rm -rf '$_setup_tmp_ref'" EXIT
 }
 
 # Build a fake `claude` binary that echoes the file at $1 and put it first on PATH.
@@ -362,7 +363,7 @@ Create `/home/jayesh0vasudeva/Housekeeping/tests/test_lock.sh`:
 set -u
 source "$(dirname "$0")/lib.sh"
 
-tmp=$(setup_tmp)
+setup_tmp tmp
 export HOUSEKEEPING_DIR="$tmp"
 export CLAUDE_MODEL_OVERRIDE="skip"  # hint to script to skip real model
 printf '# TODO\n\n## Active\n\n## Blocked / Waiting\n\n## Done (last 7 days)\n' > "$tmp/TODO.md"
@@ -597,7 +598,7 @@ Create `/home/jayesh0vasudeva/Housekeeping/tests/test_throttle.sh`:
 set -u
 source "$(dirname "$0")/lib.sh"
 
-tmp=$(setup_tmp)
+setup_tmp tmp
 export HOUSEKEEPING_DIR="$tmp"
 printf '# TODO\n\n## Active\n\n## Blocked / Waiting\n\n## Done (last 7 days)\n' > "$tmp/TODO.md"
 
@@ -706,7 +707,7 @@ Create `/home/jayesh0vasudeva/Housekeeping/tests/test_golden.sh`:
 set -u
 source "$(dirname "$0")/lib.sh"
 
-tmp=$(setup_tmp)
+setup_tmp tmp
 export HOUSEKEEPING_DIR="$tmp"
 
 fixture_dir="$(cd "$(dirname "$0")/fixtures" && pwd)"
@@ -772,7 +773,7 @@ Create `/home/jayesh0vasudeva/Housekeeping/tests/test_malformed.sh`:
 set -u
 source "$(dirname "$0")/lib.sh"
 
-tmp=$(setup_tmp)
+setup_tmp tmp
 export HOUSEKEEPING_DIR="$tmp"
 
 fixture_dir="$(cd "$(dirname "$0")/fixtures" && pwd)"
@@ -828,7 +829,7 @@ Create `/home/jayesh0vasudeva/Housekeeping/tests/test_session_start.sh`:
 set -u
 source "$(dirname "$0")/lib.sh"
 
-tmp=$(setup_tmp)
+setup_tmp tmp
 export HOUSEKEEPING_DIR="$tmp"
 
 fixture_dir="$(cd "$(dirname "$0")/fixtures" && pwd)"
