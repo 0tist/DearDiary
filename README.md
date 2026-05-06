@@ -26,21 +26,26 @@ bash install.sh
 bash uninstall.sh
 ```
 
-**View the spec as slides:**
+**View the spec as a presenterm slideshow:**
 
 ```bash
-slides docs/superpowers/specs/2026-04-23-background-todo-design.md
+presenterm docs/superpowers/specs/2026-04-23-background-todo-design.md
 ```
 
-**View TODO.md as slides** (one slide per section):
+**View TODO.md as a presenterm slideshow** (one slide per `## ` section):
 
 ```bash
-todo         # alias → todo-slides
-todo-slides  # same thing; pass a path to view a different md file
+todo             # alias → todo-presenterm
+todo-presenterm  # same thing; pass a path to view a different md file
 ```
 
 The `todo` alias is installed via `~/.bashrc.d/housekeeping-aliases.sh`
 (a symlink into `shell/housekeeping-aliases.sh` in this repo).
+
+`todo-presenterm` shells out to `presenterm`. Set `PRESENTERM_THEME=dark`
+or `PRESENTERM_IMAGE_PROTOCOL=ascii-blocks` to override defaults.
+Mermaid code blocks render natively in presenterm via the `mmdc` we
+already have installed.
 
 ## Tests
 

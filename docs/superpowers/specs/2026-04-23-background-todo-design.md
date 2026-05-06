@@ -21,7 +21,7 @@ Survives: long sessions, parallel sessions, short sessions, crashes.
 
 **The problem this solves.** Claude Code's built-in `TaskCreate` tool is
 in-session only: its task list dies with the conversation. A user who
-bounces between `slides`, `AortaAIM`, and ten other projects has no
+bounces between `presenterm`, `AortaAIM`, and ten other projects has no
 durable, machine-wide record of *what's still on their plate*. They
 either maintain a TODO by hand (which rots the moment they forget), or
 they don't, and things fall through the cracks. This system makes the
@@ -50,7 +50,7 @@ bookkeeping required.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  Any Claude Code session (slides, AortaAIM, anywhere)    │
+│  Any Claude Code session (presenterm, AortaAIM, anywhere)    │
 └──────────────────────────────────────────────────────────┘
          │ SessionStart          │ Stop / SessionEnd
          ▼                       ▼
@@ -103,17 +103,17 @@ Human-readable markdown. Stable section headers so the updater can diff cleanly.
 ```markdown
 # TODO
 
-_Last updated: 2026-04-23 14:32 UTC by session <id> (cwd: ~/slides)_
+_Last updated: 2026-04-23 14:32 UTC by session <id> (cwd: ~/presenterm)_
 
 ## Active
-- [ ] [slides] wire up CLI flag `--theme` (in progress)
+- [ ] [presenterm] wire up CLI flag `--theme` (in progress)
 - [ ] [AortaAIM] regenerate landmark JSON after dataset refresh
 
 ## Blocked / Waiting
-- [ ] [slides] confirm whether export format is PDF or HTML
+- [ ] [presenterm] confirm whether export format is PDF or HTML
 
 ## Done (last 7 days)
-- [x] 2026-04-22 [slides] initial CLI scaffold
+- [x] 2026-04-22 [presenterm] initial CLI scaffold
 ```
 
 **Why three fixed headers.** They're a *parser contract* between the
@@ -320,7 +320,7 @@ is that deleting the repo breaks the hooks; that's a feature
 ## 5 · Data flow (one cycle)
 
 ```
-User prompts Claude in ~/slides
+User prompts Claude in ~/presenterm
         ▼
 Claude does work
         ▼
@@ -522,7 +522,7 @@ restart sessions often enough.
 
 **Out of scope for now:**
 - Per-project rollups derived from the central file.
-- `todo` CLI alias / `todo-slides` viewer (implemented post-hoc).
+- `todo` CLI alias / `todo-presenterm` viewer (implemented post-hoc).
 - Weekly auto-archival of items older than 7 days from `## Done`.
 - Tracking time spent per item (would require parsing turn timestamps).
 
@@ -532,7 +532,7 @@ restart sessions often enough.
 
 Spec lives at: `docs/superpowers/specs/2026-04-23-background-todo-design.md`
 
-View with:  `slides <this-file>`  ·  `todo-slides` for the live TODO
+View with:  `presenterm <this-file>`  ·  `todo-presenterm` for the live TODO
 
 Implementation: `docs/superpowers/plans/2026-04-23-background-todo.md`
 (executed 2026-04-23, merged to main as commit `f00d5f2`).

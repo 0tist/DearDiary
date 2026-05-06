@@ -22,7 +22,7 @@ done
 
 # Remove user-facing CLI helper symlinks
 LOCAL_BIN="$HOME/.local/bin"
-for name in todo-slides; do
+for name in todo-presenterm todo-slides; do  # remove legacy todo-slides too on upgrade
     target="$LOCAL_BIN/$name"
     if [ -L "$target" ]; then
         rm -f "$target"

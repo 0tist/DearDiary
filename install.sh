@@ -29,7 +29,7 @@ done
 # 1b. Symlink user-facing CLI helpers into ~/.local/bin/
 LOCAL_BIN="$HOME/.local/bin"
 mkdir -p "$LOCAL_BIN"
-for pair in "todo-slides.sh:todo-slides"; do
+for pair in "todo-presenterm.sh:todo-presenterm"; do
     src="$REPO_DIR/scripts/${pair%%:*}"
     dst="$LOCAL_BIN/${pair##*:}"
     [ -x "$src" ] || chmod +x "$src"

@@ -656,10 +656,10 @@ Create `/home/jayesh0vasudeva/Housekeeping/tests/fixtures/todo-before.md`:
 ```markdown
 # TODO
 
-_Last updated: 2026-04-22 10:00 UTC by session old (cwd: ~/slides)_
+_Last updated: 2026-04-22 10:00 UTC by session old (cwd: ~/presenterm)_
 
 ## Active
-- [ ] [slides] wire up CLI flag `--theme`
+- [ ] [presenterm] wire up CLI flag `--theme`
 - [ ] [AortaAIM] regenerate landmark JSON
 
 ## Blocked / Waiting
@@ -684,16 +684,16 @@ This is what the fake `claude` will return (so the golden test checks our script
 ```markdown
 # TODO
 
-_Last updated: 2026-04-23 12:00 UTC by session golden (cwd: ~/slides)_
+_Last updated: 2026-04-23 12:00 UTC by session golden (cwd: ~/presenterm)_
 
 ## Active
-- [ ] [slides] `--output` flag
+- [ ] [presenterm] `--output` flag
 - [ ] [AortaAIM] regenerate landmark JSON
 
 ## Blocked / Waiting
 
 ## Done (last 7 days)
-- [x] 2026-04-23 [slides] wire up `--theme` flag
+- [x] 2026-04-23 [presenterm] wire up `--theme` flag
 ```
 
 - [ ] **Step 4: Write `tests/test_golden.sh`**
@@ -721,7 +721,7 @@ script="$(cd "$(dirname "$0")/../scripts" && pwd)/todo-update.sh"
 
 HOOK_TRANSCRIPT_PATH="$tmp/transcript.jsonl" \
 HOOK_SESSION_ID="golden" \
-HOOK_CWD="$HOME/slides" \
+HOOK_CWD="$HOME/presenterm" \
 TODO_UPDATE_PHASE=B "$script" end
 
 # Compare (ignoring trailing newlines)
@@ -1245,10 +1245,10 @@ bash install.sh
 bash uninstall.sh
 ```
 
-**View the spec as slides:**
+**View the spec as a presenterm slideshow:**
 
 ```bash
-slides docs/superpowers/specs/2026-04-23-background-todo-design.md
+presenterm docs/superpowers/specs/2026-04-23-background-todo-design.md
 ```
 
 ## Tests

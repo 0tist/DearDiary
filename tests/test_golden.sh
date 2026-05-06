@@ -18,7 +18,7 @@ script="$(cd "$(dirname "$0")/../scripts" && pwd)/todo-update.sh"
 
 HOOK_TRANSCRIPT_PATH="$tmp/transcript.jsonl" \
 HOOK_SESSION_ID="golden" \
-HOOK_CWD="$HOME/slides" \
+HOOK_CWD="$HOME/presenterm" \
 TODO_UPDATE_PHASE=B "$script" end
 
 # Compare (ignoring trailing newlines)
