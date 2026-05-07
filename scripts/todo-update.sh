@@ -7,16 +7,16 @@
 set -u
 
 TRIGGER="${1:-end}"
-HOUSEKEEPING_DIR="${HOUSEKEEPING_DIR:-$HOME/Housekeeping}"
-TODO_FILE="$HOUSEKEEPING_DIR/TODO.md"
-LOCK_FILE="$HOUSEKEEPING_DIR/.todo-update.lock"
-MTIME_FILE="$HOUSEKEEPING_DIR/.todo-last-update"
-EVENT_LOG="$HOUSEKEEPING_DIR/.todo-events.log"
-TMP_FILE="$HOUSEKEEPING_DIR/TODO.md.tmp"
+DEARDIARY_DIR="${DEARDIARY_DIR:-$HOME/DearDiary}"
+TODO_FILE="$DEARDIARY_DIR/TODO.md"
+LOCK_FILE="$DEARDIARY_DIR/.todo-update.lock"
+MTIME_FILE="$DEARDIARY_DIR/.todo-last-update"
+EVENT_LOG="$DEARDIARY_DIR/.todo-events.log"
+TMP_FILE="$DEARDIARY_DIR/TODO.md.tmp"
 THROTTLE_SECONDS=300
 PROMPT_TEMPLATE="$(dirname "$(readlink -f "$0")")/lib/prompt.txt"
 
-mkdir -p "$HOUSEKEEPING_DIR" 2>/dev/null || true
+mkdir -p "$DEARDIARY_DIR" 2>/dev/null || true
 
 log_event() {
     local result="$1" detail="${2:-}"
@@ -103,12 +103,19 @@ phase_b() {
     prompt="${prompt//\{\{CURRENT_TODO\}\}/$current_todo}"
     prompt="${prompt//\{\{TRANSCRIPT\}\}/$transcript}"
 
-    # Call claude -p (60s timeout)
-    local new_todo
-    if ! new_todo=$(timeout 60 claude -p --model claude-haiku-4-5-20251001 "$prompt" 2>/dev/null); then
-        log_event "claude_error"
+    # Call claude -p from a neutral cwd so the headless invocation does not
+    # cold-start against the triggering session's plugins / hooks / CLAUDE.md.
+    # 180s budget covers slower cold-starts on the first call after the
+    # binary's session cache is empty.
+    local new_todo claude_stderr claude_stderr_tail
+    claude_stderr=$(mktemp)
+    if ! new_todo=$(cd "$DEARDIARY_DIR" && timeout 180 claude -p --model claude-haiku-4-5-20251001 "$prompt" 2>"$claude_stderr"); then
+        claude_stderr_tail=$(tail -c 400 "$claude_stderr" 2>/dev/null | tr '\n"' ' ' | sed 's/[[:space:]]\+/ /g')
+        rm -f "$claude_stderr"
+        log_event "claude_error" "${claude_stderr_tail:-no_stderr}"
         exit 0
     fi
+    rm -f "$claude_stderr"
 
     # Validate output structure
     if ! echo "$new_todo" | grep -q '^# TODO' \

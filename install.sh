@@ -40,8 +40,18 @@ done
 # 1c. Symlink shell aliases into ~/.bashrc.d/ (sourced by ~/.bashrc)
 BASHRC_D="$HOME/.bashrc.d"
 mkdir -p "$BASHRC_D"
-ln -sfn "$REPO_DIR/shell/housekeeping-aliases.sh" "$BASHRC_D/housekeeping-aliases.sh"
-echo "    linked $BASHRC_D/housekeeping-aliases.sh -> $REPO_DIR/shell/housekeeping-aliases.sh"
+ln -sfn "$REPO_DIR/shell/deardiary-aliases.sh" "$BASHRC_D/deardiary-aliases.sh"
+echo "    linked $BASHRC_D/deardiary-aliases.sh -> $REPO_DIR/shell/deardiary-aliases.sh"
+
+# 1d. Symlink global Claude rules into ~/.claude/CLAUDE.md
+GLOBAL_RULES="$CLAUDE_DIR/CLAUDE.md"
+if [ -e "$GLOBAL_RULES" ] && [ ! -L "$GLOBAL_RULES" ]; then
+    backup="$GLOBAL_RULES.pre-deardiary-install-backup"
+    mv "$GLOBAL_RULES" "$backup"
+    echo "    backed up existing $GLOBAL_RULES -> $backup"
+fi
+ln -sfn "$REPO_DIR/claude/CLAUDE.md" "$GLOBAL_RULES"
+echo "    linked $GLOBAL_RULES -> $REPO_DIR/claude/CLAUDE.md"
 
 # 2. Merge settings.json
 python3 - "$SETTINGS" <<'PY'
@@ -90,7 +100,7 @@ echo "==> Smoke test"
 tmp=$(mktemp -d)
 trap "rm -rf '$tmp'" EXIT
 cp "$REPO_DIR/TODO.md.template" "$tmp/TODO.md"
-HOUSEKEEPING_DIR="$tmp" \
+DEARDIARY_DIR="$tmp" \
 HOOK_SESSION_ID="install-smoke" \
 HOOK_CWD="$PWD" \
 TODO_UPDATE_PHASE=B \

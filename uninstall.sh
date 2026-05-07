@@ -32,10 +32,19 @@ done
 
 # Remove shell alias symlink
 BASHRC_D="$HOME/.bashrc.d"
-target="$BASHRC_D/housekeeping-aliases.sh"
+target="$BASHRC_D/deardiary-aliases.sh"
 if [ -L "$target" ]; then
     rm -f "$target"
     echo "    removed symlink $target"
+fi
+
+# Remove global Claude rules symlink (only if it points at our file)
+target="$CLAUDE_DIR/CLAUDE.md"
+if [ -L "$target" ]; then
+    rm -f "$target"
+    echo "    removed symlink $target"
+elif [ -e "$target" ]; then
+    echo "    WARNING: $target exists and is not a symlink — leaving in place"
 fi
 
 # Strip hook entries
