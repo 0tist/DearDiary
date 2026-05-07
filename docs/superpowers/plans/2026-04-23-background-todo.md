@@ -4,7 +4,7 @@
 
 **Goal:** Build a cross-session TODO system that every Claude Code session auto-updates via hooks, with flock-based concurrency and Haiku-powered reconciliation.
 
-**Architecture:** Source scripts live in `~/Housekeeping/scripts/`, symlinked into `~/.claude/` by `install.sh`. Global hooks in `~/.claude/settings.json` trigger the updater on `SessionStart`, `Stop`, and `SessionEnd`. Updater runs a fast Phase A (fork & return) in-hook and a slow Phase B (lock, throttle, `claude -p`, atomic write) in a detached background process.
+**Architecture:** Source scripts live in `~/DearDiary/scripts/`, symlinked into `~/.claude/` by `install.sh`. Global hooks in `~/.claude/settings.json` trigger the updater on `SessionStart`, `Stop`, and `SessionEnd`. Updater runs a fast Phase A (fork & return) in-hook and a slow Phase B (lock, throttle, `claude -p`, atomic write) in a detached background process.
 
 **Tech Stack:** Bash 4+, `flock`, `jq` (for transcript JSONL parsing), Python 3 (for safe JSON merge of `settings.json`), `claude` CLI (Haiku 4.5 model).
 
@@ -23,7 +23,7 @@
 | `scripts/lib/prompt.txt` | The exact prompt template handed to `claude -p`. Kept as a data file so it can be edited without touching shell quoting. |
 | `install.sh` | Symlinks scripts into `~/.claude/`, merges hook entries into `~/.claude/settings.json`, seeds `TODO.md`, runs smoke test. |
 | `uninstall.sh` | Inverse of install. Never deletes `TODO.md` or `.todo-events.log`. |
-| `TODO.md.template` | Starter content copied to `~/Housekeeping/TODO.md` on first install. |
+| `TODO.md.template` | Starter content copied to `~/DearDiary/TODO.md` on first install. |
 | `tests/run.sh` | Runs all tests, returns non-zero on any failure. |
 | `tests/lib.sh` | Shared helpers: `assert_eq`, `assert_contains`, `make_fake_claude`, `setup_tmp`. |
 | `tests/test_lock.sh` | Two concurrent updaters → exactly one writes. |
@@ -42,18 +42,18 @@
 
 | Path | Source |
 |---|---|
-| `~/.claude/todo-update.sh` | symlink → `~/Housekeeping/scripts/todo-update.sh` |
-| `~/.claude/todo-session-start.sh` | symlink → `~/Housekeeping/scripts/todo-session-start.sh` |
+| `~/.claude/todo-update.sh` | symlink → `~/DearDiary/scripts/todo-update.sh` |
+| `~/.claude/todo-session-start.sh` | symlink → `~/DearDiary/scripts/todo-session-start.sh` |
 | `~/.claude/settings.json` | patched in place (merge) |
 
 **Runtime state (not in repo, gitignored):**
 
 | Path | Purpose |
 |---|---|
-| `~/Housekeeping/TODO.md` | Source of truth |
-| `~/Housekeeping/.todo-update.lock` | flock target |
-| `~/Housekeeping/.todo-last-update` | mtime drives throttle |
-| `~/Housekeeping/.todo-events.log` | JSONL audit trail |
+| `~/DearDiary/TODO.md` | Source of truth |
+| `~/DearDiary/.todo-update.lock` | flock target |
+| `~/DearDiary/.todo-last-update` | mtime drives throttle |
+| `~/DearDiary/.todo-events.log` | JSONL audit trail |
 
 ---
 
@@ -68,13 +68,13 @@
 - [ ] **Step 1: Create directories**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 mkdir -p scripts/lib tests/fixtures
 ```
 
 - [ ] **Step 2: Write `.gitignore`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/.gitignore`:
+Create `/home/jayesh0vasudeva/DearDiary/.gitignore`:
 
 ```gitignore
 # Runtime state for the auto-TODO system
@@ -91,13 +91,13 @@ TODO.md.tmp
 
 - [ ] **Step 3: Verify structure**
 
-Run: `find ~/Housekeeping -maxdepth 2 -type d | sort`
+Run: `find ~/DearDiary -maxdepth 2 -type d | sort`
 Expected output includes: `scripts`, `scripts/lib`, `tests`, `tests/fixtures`, `docs/superpowers/plans`, `docs/superpowers/specs`.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add .gitignore
 git commit -m "chore: scaffold dirs and gitignore runtime state"
 ```
@@ -112,7 +112,7 @@ git commit -m "chore: scaffold dirs and gitignore runtime state"
 
 - [ ] **Step 1: Write `tests/lib.sh`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/lib.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/lib.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -197,7 +197,7 @@ print_summary() {
 
 - [ ] **Step 2: Write `tests/run.sh`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/run.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/run.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -230,8 +230,8 @@ echo "All test files passed."
 - [ ] **Step 3: Make executable and smoke-run**
 
 ```bash
-chmod +x ~/Housekeeping/tests/run.sh
-bash ~/Housekeeping/tests/run.sh
+chmod +x ~/DearDiary/tests/run.sh
+bash ~/DearDiary/tests/run.sh
 ```
 
 Expected: prints `All test files passed.` (no tests exist yet, so nothing runs).
@@ -239,7 +239,7 @@ Expected: prints `All test files passed.` (no tests exist yet, so nothing runs).
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add tests/lib.sh tests/run.sh
 git commit -m "test: add shared test harness and runner"
 ```
@@ -253,7 +253,7 @@ git commit -m "test: add shared test harness and runner"
 
 - [ ] **Step 1: Write the prompt template**
 
-Create `/home/jayesh0vasudeva/Housekeeping/scripts/lib/prompt.txt`:
+Create `/home/jayesh0vasudeva/DearDiary/scripts/lib/prompt.txt`:
 
 ```
 You are maintaining a personal TODO list for a developer. You will be given:
@@ -291,7 +291,7 @@ Output the updated TODO now.
 - [ ] **Step 2: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add scripts/lib/prompt.txt
 git commit -m "feat: prompt template for TODO reconciliation"
 ```
@@ -305,7 +305,7 @@ git commit -m "feat: prompt template for TODO reconciliation"
 
 - [ ] **Step 1: Write the template**
 
-Create `/home/jayesh0vasudeva/Housekeeping/TODO.md.template`:
+Create `/home/jayesh0vasudeva/DearDiary/TODO.md.template`:
 
 ```markdown
 # TODO
@@ -322,7 +322,7 @@ _Last updated: never — freshly installed_
 - [ ] **Step 2: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add TODO.md.template
 git commit -m "feat: starter template for TODO.md"
 ```
@@ -337,7 +337,7 @@ git commit -m "feat: starter template for TODO.md"
 
 - [ ] **Step 1: Write `fixtures/fake-claude-output.md`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/fixtures/fake-claude-output.md`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/fixtures/fake-claude-output.md`:
 
 ```markdown
 # TODO
@@ -354,7 +354,7 @@ _Last updated: 2026-04-23 00:00 UTC by session test (cwd: /tmp)_
 
 - [ ] **Step 2: Write `tests/test_lock.sh`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/test_lock.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/test_lock.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -364,7 +364,7 @@ set -u
 source "$(dirname "$0")/lib.sh"
 
 setup_tmp tmp
-export HOUSEKEEPING_DIR="$tmp"
+export DEARDIARY_DIR="$tmp"
 export CLAUDE_MODEL_OVERRIDE="skip"  # hint to script to skip real model
 printf '# TODO\n\n## Active\n\n## Blocked / Waiting\n\n## Done (last 7 days)\n' > "$tmp/TODO.md"
 
@@ -399,13 +399,13 @@ print_summary
 
 - [ ] **Step 3: Run the test — it must fail because the script does not exist yet**
 
-Run: `bash ~/Housekeeping/tests/test_lock.sh`
+Run: `bash ~/DearDiary/tests/test_lock.sh`
 Expected: FAIL (script missing, both workers return non-zero).
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add tests/test_lock.sh tests/fixtures/fake-claude-output.md
 git commit -m "test: failing test for lock-based concurrency"
 ```
@@ -419,7 +419,7 @@ git commit -m "test: failing test for lock-based concurrency"
 
 - [ ] **Step 1: Write the script**
 
-Create `/home/jayesh0vasudeva/Housekeeping/scripts/todo-update.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/scripts/todo-update.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -431,16 +431,16 @@ Create `/home/jayesh0vasudeva/Housekeeping/scripts/todo-update.sh`:
 set -u
 
 TRIGGER="${1:-end}"
-HOUSEKEEPING_DIR="${HOUSEKEEPING_DIR:-$HOME/Housekeeping}"
-TODO_FILE="$HOUSEKEEPING_DIR/TODO.md"
-LOCK_FILE="$HOUSEKEEPING_DIR/.todo-update.lock"
-MTIME_FILE="$HOUSEKEEPING_DIR/.todo-last-update"
-EVENT_LOG="$HOUSEKEEPING_DIR/.todo-events.log"
-TMP_FILE="$HOUSEKEEPING_DIR/TODO.md.tmp"
+DEARDIARY_DIR="${DEARDIARY_DIR:-$HOME/DearDiary}"
+TODO_FILE="$DEARDIARY_DIR/TODO.md"
+LOCK_FILE="$DEARDIARY_DIR/.todo-update.lock"
+MTIME_FILE="$DEARDIARY_DIR/.todo-last-update"
+EVENT_LOG="$DEARDIARY_DIR/.todo-events.log"
+TMP_FILE="$DEARDIARY_DIR/TODO.md.tmp"
 THROTTLE_SECONDS=300
 PROMPT_TEMPLATE="$(dirname "$(readlink -f "$0")")/lib/prompt.txt"
 
-mkdir -p "$HOUSEKEEPING_DIR" 2>/dev/null || true
+mkdir -p "$DEARDIARY_DIR" 2>/dev/null || true
 
 log_event() {
     local result="$1" detail="${2:-}"
@@ -563,18 +563,18 @@ fi
 - [ ] **Step 2: Make executable**
 
 ```bash
-chmod +x ~/Housekeeping/scripts/todo-update.sh
+chmod +x ~/DearDiary/scripts/todo-update.sh
 ```
 
 - [ ] **Step 3: Run the lock test — it should pass**
 
-Run: `bash ~/Housekeeping/tests/test_lock.sh`
+Run: `bash ~/DearDiary/tests/test_lock.sh`
 Expected: both assertions PASS, exit 0.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add scripts/todo-update.sh
 git commit -m "feat: todo-update.sh with two-phase design and flock"
 ```
@@ -588,7 +588,7 @@ git commit -m "feat: todo-update.sh with two-phase design and flock"
 
 - [ ] **Step 1: Write `tests/test_throttle.sh`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/test_throttle.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/test_throttle.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -599,7 +599,7 @@ set -u
 source "$(dirname "$0")/lib.sh"
 
 setup_tmp tmp
-export HOUSEKEEPING_DIR="$tmp"
+export DEARDIARY_DIR="$tmp"
 printf '# TODO\n\n## Active\n\n## Blocked / Waiting\n\n## Done (last 7 days)\n' > "$tmp/TODO.md"
 
 fixture_dir="$(cd "$(dirname "$0")/fixtures" && pwd)"
@@ -628,13 +628,13 @@ print_summary
 
 - [ ] **Step 2: Run it — should pass already because Task 6 implemented throttle**
 
-Run: `bash ~/Housekeeping/tests/test_throttle.sh`
+Run: `bash ~/DearDiary/tests/test_throttle.sh`
 Expected: 3 PASS, exit 0.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add tests/test_throttle.sh
 git commit -m "test: throttle and end-bypass behavior"
 ```
@@ -651,7 +651,7 @@ git commit -m "test: throttle and end-bypass behavior"
 
 - [ ] **Step 1: Write `fixtures/todo-before.md`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/fixtures/todo-before.md`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/fixtures/todo-before.md`:
 
 ```markdown
 # TODO
@@ -669,7 +669,7 @@ _Last updated: 2026-04-22 10:00 UTC by session old (cwd: ~/presenterm)_
 
 - [ ] **Step 2: Write `fixtures/transcript.jsonl`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/fixtures/transcript.jsonl`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/fixtures/transcript.jsonl`:
 
 ```jsonl
 {"type":"user","message":{"content":"finish wiring the --theme flag"}}
@@ -679,7 +679,7 @@ Create `/home/jayesh0vasudeva/Housekeeping/tests/fixtures/transcript.jsonl`:
 
 - [ ] **Step 3: Write `fixtures/todo-golden.md`**
 
-This is what the fake `claude` will return (so the golden test checks our script's I/O, not the model). Create `/home/jayesh0vasudeva/Housekeeping/tests/fixtures/todo-golden.md`:
+This is what the fake `claude` will return (so the golden test checks our script's I/O, not the model). Create `/home/jayesh0vasudeva/DearDiary/tests/fixtures/todo-golden.md`:
 
 ```markdown
 # TODO
@@ -698,7 +698,7 @@ _Last updated: 2026-04-23 12:00 UTC by session golden (cwd: ~/presenterm)_
 
 - [ ] **Step 4: Write `tests/test_golden.sh`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/test_golden.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/test_golden.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -708,7 +708,7 @@ set -u
 source "$(dirname "$0")/lib.sh"
 
 setup_tmp tmp
-export HOUSEKEEPING_DIR="$tmp"
+export DEARDIARY_DIR="$tmp"
 
 fixture_dir="$(cd "$(dirname "$0")/fixtures" && pwd)"
 cp "$fixture_dir/todo-before.md" "$tmp/TODO.md"
@@ -733,13 +733,13 @@ print_summary
 
 - [ ] **Step 5: Run it**
 
-Run: `bash ~/Housekeeping/tests/test_golden.sh`
+Run: `bash ~/DearDiary/tests/test_golden.sh`
 Expected: 1 PASS, exit 0.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add tests/test_golden.sh tests/fixtures/todo-before.md tests/fixtures/transcript.jsonl tests/fixtures/todo-golden.md
 git commit -m "test: golden-file end-to-end reconciliation"
 ```
@@ -754,7 +754,7 @@ git commit -m "test: golden-file end-to-end reconciliation"
 
 - [ ] **Step 1: Write `fixtures/fake-claude-garbage.txt`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/fixtures/fake-claude-garbage.txt`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/fixtures/fake-claude-garbage.txt`:
 
 ```
 I don't want to output a TODO. Here is a recipe for pancakes instead.
@@ -764,7 +764,7 @@ I don't want to output a TODO. Here is a recipe for pancakes instead.
 
 - [ ] **Step 2: Write `tests/test_malformed.sh`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/test_malformed.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/test_malformed.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -774,7 +774,7 @@ set -u
 source "$(dirname "$0")/lib.sh"
 
 setup_tmp tmp
-export HOUSEKEEPING_DIR="$tmp"
+export DEARDIARY_DIR="$tmp"
 
 fixture_dir="$(cd "$(dirname "$0")/fixtures" && pwd)"
 cp "$fixture_dir/todo-before.md" "$tmp/TODO.md"
@@ -798,13 +798,13 @@ print_summary
 
 - [ ] **Step 3: Run it**
 
-Run: `bash ~/Housekeeping/tests/test_malformed.sh`
+Run: `bash ~/DearDiary/tests/test_malformed.sh`
 Expected: 2 PASS, exit 0.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add tests/test_malformed.sh tests/fixtures/fake-claude-garbage.txt
 git commit -m "test: malformed claude output leaves TODO untouched"
 ```
@@ -819,7 +819,7 @@ git commit -m "test: malformed claude output leaves TODO untouched"
 
 - [ ] **Step 1: Write `tests/test_session_start.sh`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/tests/test_session_start.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/tests/test_session_start.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -830,7 +830,7 @@ set -u
 source "$(dirname "$0")/lib.sh"
 
 setup_tmp tmp
-export HOUSEKEEPING_DIR="$tmp"
+export DEARDIARY_DIR="$tmp"
 
 fixture_dir="$(cd "$(dirname "$0")/fixtures" && pwd)"
 cp "$fixture_dir/todo-before.md" "$tmp/TODO.md"
@@ -866,12 +866,12 @@ print_summary
 
 - [ ] **Step 2: Run it — must fail (script does not exist)**
 
-Run: `bash ~/Housekeeping/tests/test_session_start.sh`
+Run: `bash ~/DearDiary/tests/test_session_start.sh`
 Expected: FAIL.
 
 - [ ] **Step 3: Write `scripts/todo-session-start.sh`**
 
-Create `/home/jayesh0vasudeva/Housekeeping/scripts/todo-session-start.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/scripts/todo-session-start.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -880,8 +880,8 @@ Create `/home/jayesh0vasudeva/Housekeeping/scripts/todo-session-start.sh`:
 
 set -u
 
-HOUSEKEEPING_DIR="${HOUSEKEEPING_DIR:-$HOME/Housekeeping}"
-TODO_FILE="$HOUSEKEEPING_DIR/TODO.md"
+DEARDIARY_DIR="${DEARDIARY_DIR:-$HOME/DearDiary}"
+TODO_FILE="$DEARDIARY_DIR/TODO.md"
 
 [ -f "$TODO_FILE" ] || exit 0
 
@@ -906,8 +906,8 @@ EOF
 - [ ] **Step 4: Make executable, run test**
 
 ```bash
-chmod +x ~/Housekeeping/scripts/todo-session-start.sh
-bash ~/Housekeeping/tests/test_session_start.sh
+chmod +x ~/DearDiary/scripts/todo-session-start.sh
+bash ~/DearDiary/tests/test_session_start.sh
 ```
 
 Expected: 3 PASS, exit 0.
@@ -915,7 +915,7 @@ Expected: 3 PASS, exit 0.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add tests/test_session_start.sh scripts/todo-session-start.sh
 git commit -m "feat: SessionStart hook emits TODO as additionalContext"
 ```
@@ -929,7 +929,7 @@ git commit -m "feat: SessionStart hook emits TODO as additionalContext"
 
 - [ ] **Step 1: Write the installer**
 
-Create `/home/jayesh0vasudeva/Housekeeping/install.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/install.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -1007,7 +1007,7 @@ echo "==> Smoke test"
 tmp=$(mktemp -d)
 trap "rm -rf '$tmp'" EXIT
 cp "$REPO_DIR/TODO.md.template" "$tmp/TODO.md"
-HOUSEKEEPING_DIR="$tmp" \
+DEARDIARY_DIR="$tmp" \
 HOOK_SESSION_ID="install-smoke" \
 HOOK_CWD="$PWD" \
 TODO_UPDATE_PHASE=B \
@@ -1027,15 +1027,15 @@ echo "    Event log: $REPO_DIR/.todo-events.log"
 - [ ] **Step 2: Make executable and dry-run**
 
 ```bash
-chmod +x ~/Housekeeping/install.sh
+chmod +x ~/DearDiary/install.sh
 # Don't actually run against live settings yet — inspect first
-cat ~/Housekeeping/install.sh | head -5
+cat ~/DearDiary/install.sh | head -5
 ```
 
 - [ ] **Step 3: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add install.sh
 git commit -m "feat: install.sh — symlink scripts, merge hooks, seed TODO"
 ```
@@ -1049,7 +1049,7 @@ git commit -m "feat: install.sh — symlink scripts, merge hooks, seed TODO"
 
 - [ ] **Step 1: Write the uninstaller**
 
-Create `/home/jayesh0vasudeva/Housekeeping/uninstall.sh`:
+Create `/home/jayesh0vasudeva/DearDiary/uninstall.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -1121,13 +1121,13 @@ echo "==> Done. TODO.md and .todo-events.log preserved."
 - [ ] **Step 2: Make executable**
 
 ```bash
-chmod +x ~/Housekeeping/uninstall.sh
+chmod +x ~/DearDiary/uninstall.sh
 ```
 
 - [ ] **Step 3: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add uninstall.sh
 git commit -m "feat: uninstall.sh — remove hooks and symlinks, preserve data"
 ```
@@ -1138,7 +1138,7 @@ git commit -m "feat: uninstall.sh — remove hooks and symlinks, preserve data"
 
 - [ ] **Step 1: Run everything**
 
-Run: `bash ~/Housekeeping/tests/run.sh`
+Run: `bash ~/DearDiary/tests/run.sh`
 Expected: every test PASSes, final line `All test files passed.`, exit 0.
 
 - [ ] **Step 2: Inspect any failures**
@@ -1156,7 +1156,7 @@ No commit needed if all tests pass — this is a verification step.
 - [ ] **Step 1: Run `install.sh`**
 
 ```bash
-bash ~/Housekeeping/install.sh
+bash ~/DearDiary/install.sh
 ```
 
 Expected: symlinks created, settings.json merged, TODO.md seeded, smoke test output printed.
@@ -1167,7 +1167,7 @@ Expected: symlinks created, settings.json merged, TODO.md seeded, smoke test out
 ls -l ~/.claude/todo-update.sh ~/.claude/todo-session-start.sh
 ```
 
-Expected: both are symlinks pointing into `~/Housekeeping/scripts/`.
+Expected: both are symlinks pointing into `~/DearDiary/scripts/`.
 
 - [ ] **Step 3: Verify `settings.json`**
 
@@ -1180,7 +1180,7 @@ Expected: `hooks` contains `SessionStart`, `Stop`, `SessionEnd` entries with our
 - [ ] **Step 4: Verify TODO.md seeded**
 
 ```bash
-cat ~/Housekeeping/TODO.md
+cat ~/DearDiary/TODO.md
 ```
 
 Expected: matches the template — `# TODO`, empty sections.
@@ -1190,8 +1190,8 @@ Expected: matches the template — `# TODO`, empty sections.
 Open a new Claude Code session (any directory), send one short message, wait for response, then end the session with `/exit`. In the original shell:
 
 ```bash
-tail -n 5 ~/Housekeeping/.todo-events.log
-cat ~/Housekeeping/TODO.md
+tail -n 5 ~/DearDiary/.todo-events.log
+cat ~/DearDiary/TODO.md
 ```
 
 Expected: at least one event line with `"result":"wrote"` OR `"result":"throttled"` (depending on timing). TODO.md may have updated content.
@@ -1199,7 +1199,7 @@ Expected: at least one event line with `"result":"wrote"` OR `"result":"throttle
 - [ ] **Step 6: Commit any residual changes**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git status
 # If scripts had permission bit changes, commit them:
 git add -A
@@ -1216,12 +1216,12 @@ git commit -m "chore: ensure scripts are executable" || true
 
 - [ ] **Step 1: Replace README with useful content**
 
-Read current: `cat ~/Housekeeping/README.md`
+Read current: `cat ~/DearDiary/README.md`
 
-Write `/home/jayesh0vasudeva/Housekeeping/README.md`:
+Write `/home/jayesh0vasudeva/DearDiary/README.md`:
 
 ```markdown
-# Housekeeping
+# DearDiary
 
 Central home for background skills, hooks, and shared workflows that keep
 my Claude Code sessions honest.
@@ -1230,7 +1230,7 @@ my Claude Code sessions honest.
 
 ### Background auto-updating TODO
 
-A single TODO list at `~/Housekeeping/TODO.md` kept fresh by every Claude
+A single TODO list at `~/DearDiary/TODO.md` kept fresh by every Claude
 Code session I run. See `docs/superpowers/specs/2026-04-23-background-todo-design.md`.
 
 **Install:**
@@ -1261,7 +1261,7 @@ bash tests/run.sh
 - [ ] **Step 2: Commit**
 
 ```bash
-cd ~/Housekeeping
+cd ~/DearDiary
 git add README.md
 git commit -m "docs: README covers auto-TODO install and tests"
 ```
@@ -1298,7 +1298,7 @@ git commit -m "docs: README covers auto-TODO install and tests"
 **Placeholder scan:** none found.
 
 **Type consistency:**
-- Script env vars: `HOUSEKEEPING_DIR`, `HOOK_SESSION_ID`, `HOOK_CWD`, `HOOK_TRANSCRIPT_PATH`, `TODO_UPDATE_PHASE` — all used consistently across Task 6, Task 8, Task 9, Task 10.
+- Script env vars: `DEARDIARY_DIR`, `HOOK_SESSION_ID`, `HOOK_CWD`, `HOOK_TRANSCRIPT_PATH`, `TODO_UPDATE_PHASE` — all used consistently across Task 6, Task 8, Task 9, Task 10.
 - Event-log `result` values: `wrote`, `lock_held`, `throttled`, `claude_error`, `malformed_output` — consistent across script and all tests.
 - File paths: `TODO.md`, `.todo-update.lock`, `.todo-last-update`, `.todo-events.log`, `TODO.md.tmp` — consistent everywhere.
 - Script commands in `settings.json`: `~/.claude/todo-session-start.sh`, `~/.claude/todo-update.sh stop`, `~/.claude/todo-update.sh end` — match between install.sh (Task 11) and uninstall.sh (Task 12).

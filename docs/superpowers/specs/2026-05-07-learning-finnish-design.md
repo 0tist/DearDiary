@@ -105,7 +105,7 @@ Categories:
 
 ```mermaid +render
 flowchart LR
-  Repo["Housekeeping/claude/<br/>learning-finnish/SKILL.md"] -->|symlinked by install.sh| Global["~/.claude/skills/<br/>learning-finnish/SKILL.md"]
+  Repo["DearDiary/claude/<br/>learning-finnish/SKILL.md"] -->|symlinked by install.sh| Global["~/.claude/skills/<br/>learning-finnish/SKILL.md"]
   CLAUDE["claude/CLAUDE.md<br/>(global rules)"] -->|one-line trigger| Global
   Session["Every Claude Code session"] -->|reads CLAUDE.md| CLAUDE
   Global -->|loaded once via Skill tool<br/>at session start| Session

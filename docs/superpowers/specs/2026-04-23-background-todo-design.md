@@ -13,7 +13,7 @@ Status: implemented (see `docs/superpowers/plans/2026-04-23-background-todo.md`)
 
 ## 1 · Purpose
 
-Keep a single, always-fresh TODO at `~/Housekeeping/TODO.md` that is
+Keep a single, always-fresh TODO at `~/DearDiary/TODO.md` that is
 updated automatically by every Claude Code session the user runs —
 across any project, any working directory.
 
@@ -59,7 +59,7 @@ bookkeeping required.
                                  │
                                  ▼
                   ┌──────────────────────────────┐
-                  │  ~/Housekeeping/             │
+                  │  ~/DearDiary/             │
                   │    TODO.md          ← truth  │
                   │    .todo-update.lock         │
                   │    .todo-last-update         │
@@ -142,7 +142,7 @@ Runs **synchronously in the hook**. Must return in milliseconds.
 1. Read hook JSON from stdin → capture `transcript_path`, `session_id`,
    `cwd`, trigger (`stop` / `end`).
 2. Fork a **detached background child** that runs Phase B.
-3. Redirect child's stdout/stderr to `~/Housekeeping/.todo-events.log`.
+3. Redirect child's stdout/stderr to `~/DearDiary/.todo-events.log`.
 4. Parent exits 0 immediately → Claude Code hook unblocked.
 
 **The detachment recipe (and why each piece matters):**
@@ -236,7 +236,7 @@ it's either the pre-update content or the post-update content.
 
 Runs on `SessionStart` in every project.
 
-- Reads `~/Housekeeping/TODO.md`.
+- Reads `~/DearDiary/TODO.md`.
 - Emits Claude Code `additionalContext` JSON → current TODO visible to
   the session from turn 1.
 - If `TODO.md` missing → no context, non-fatal.
@@ -379,7 +379,7 @@ Turn ends    │   Stop hook fires                  (busy mid-turn)
 **Invariant:** at most one updater writes `TODO.md` at a time, machine-wide.
 
 ```bash
-exec 200>~/Housekeeping/.todo-update.lock
+exec 200>~/DearDiary/.todo-update.lock
 flock -n 200 || exit 0
 # critical section: read, reconcile, write
 # lock auto-released on exit / kill
@@ -446,7 +446,7 @@ worse than one that silently skips an update — the user can always
 
 ## 8 · Testing
 
-Tests live at `~/Housekeeping/tests/`.
+Tests live at `~/DearDiary/tests/`.
 
 - **Golden file** — mock transcript + TODO.md → diff against committed expected output.
 - **Lock** — spawn 2 updaters concurrently → assert exactly one wrote.

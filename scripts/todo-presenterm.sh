@@ -2,7 +2,7 @@
 # View a TODO-formatted markdown file as a presenterm slideshow.
 # Each "## " heading becomes its own slide.
 #
-# Usage: todo-presenterm            # opens ~/Housekeeping/TODO.md
+# Usage: todo-presenterm            # opens ~/DearDiary/TODO.md
 #        todo-presenterm path.md    # opens any file
 #
 # Env:
@@ -12,7 +12,7 @@
 
 set -u
 
-FILE="${1:-$HOME/Housekeeping/TODO.md}"
+FILE="${1:-$HOME/DearDiary/TODO.md}"
 if [ ! -f "$FILE" ]; then
     echo "todo-presenterm: no such file: $FILE" >&2
     exit 1

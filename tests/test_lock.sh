@@ -5,7 +5,7 @@ set -u
 source "$(dirname "$0")/lib.sh"
 
 setup_tmp tmp
-export HOUSEKEEPING_DIR="$tmp"
+export DEARDIARY_DIR="$tmp"
 export CLAUDE_MODEL_OVERRIDE="skip"  # hint to script to skip real model
 printf '# TODO\n\n## Active\n\n## Blocked / Waiting\n\n## Done (last 7 days)\n' > "$tmp/TODO.md"
 

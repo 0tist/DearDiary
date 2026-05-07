@@ -5,7 +5,7 @@ set -u
 source "$(dirname "$0")/lib.sh"
 
 setup_tmp tmp
-export HOUSEKEEPING_DIR="$tmp"
+export DEARDIARY_DIR="$tmp"
 
 fixture_dir="$(cd "$(dirname "$0")/fixtures" && pwd)"
 cp "$fixture_dir/todo-before.md" "$tmp/TODO.md"

@@ -39,7 +39,7 @@ Each task below produces an isolated, committable change. Tests come first where
 - [ ] **Step 1: Create the test file**
 
 ```bash
-cat > /home/jayesh0vasudeva/Housekeeping/tests/test_learning_finnish_skill.sh <<'EOF'
+cat > /home/jayesh0vasudeva/DearDiary/tests/test_learning_finnish_skill.sh <<'EOF'
 #!/usr/bin/env bash
 # Static checks for the learning-finnish skill wiring.
 
@@ -69,18 +69,18 @@ assert_file_contains "$repo_dir/claude/CLAUDE.md" "learning-finnish" "CLAUDE.md 
 
 print_summary
 EOF
-chmod +x /home/jayesh0vasudeva/Housekeeping/tests/test_learning_finnish_skill.sh
+chmod +x /home/jayesh0vasudeva/DearDiary/tests/test_learning_finnish_skill.sh
 ```
 
 - [ ] **Step 2: Run the test and confirm it fails**
 
-Run: `bash /home/jayesh0vasudeva/Housekeeping/tests/test_learning_finnish_skill.sh`
+Run: `bash /home/jayesh0vasudeva/DearDiary/tests/test_learning_finnish_skill.sh`
 Expected: every `FAIL` because nothing has been wired yet. The script should still exit cleanly (asserts log a fail, do not abort). The summary should show `Passed: 0` and a non-zero `Failed:`.
 
 - [ ] **Step 3: Commit the failing test**
 
 ```bash
-cd /home/jayesh0vasudeva/Housekeeping
+cd /home/jayesh0vasudeva/DearDiary
 git add tests/test_learning_finnish_skill.sh
 git commit -m "test: failing static checks for learning-finnish skill"
 ```
@@ -96,12 +96,12 @@ git commit -m "test: failing static checks for learning-finnish skill"
 - [ ] **Step 1: Create the directory**
 
 ```bash
-mkdir -p /home/jayesh0vasudeva/Housekeeping/claude/learning-finnish
+mkdir -p /home/jayesh0vasudeva/DearDiary/claude/learning-finnish
 ```
 
 - [ ] **Step 2: Write SKILL.md**
 
-Write to `/home/jayesh0vasudeva/Housekeeping/claude/learning-finnish/SKILL.md`:
+Write to `/home/jayesh0vasudeva/DearDiary/claude/learning-finnish/SKILL.md`:
 
 ````markdown
 ---
@@ -252,13 +252,13 @@ These are the failure modes to avoid.
 
 - [ ] **Step 3: Run the test and confirm skill-file checks now pass**
 
-Run: `bash /home/jayesh0vasudeva/Housekeeping/tests/test_learning_finnish_skill.sh`
+Run: `bash /home/jayesh0vasudeva/DearDiary/tests/test_learning_finnish_skill.sh`
 Expected: the six skill-content assertions pass; the install/uninstall/CLAUDE.md assertions still fail.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /home/jayesh0vasudeva/Housekeeping
+cd /home/jayesh0vasudeva/DearDiary
 git add claude/learning-finnish/SKILL.md
 git commit -m "feat: add learning-finnish SKILL.md (skill body, not yet wired)"
 ```
@@ -273,7 +273,7 @@ git commit -m "feat: add learning-finnish SKILL.md (skill body, not yet wired)"
 
 - [ ] **Step 1: Append the new section**
 
-Use Edit on `/home/jayesh0vasudeva/Housekeeping/claude/CLAUDE.md`. Find the existing line:
+Use Edit on `/home/jayesh0vasudeva/DearDiary/claude/CLAUDE.md`. Find the existing line:
 
 ```
 ## When in plan mode
@@ -300,15 +300,15 @@ project-level `CLAUDE.md` overrides it.
 - [ ] **Step 2: Run test_claude_rules.sh and test_learning_finnish_skill.sh**
 
 ```bash
-bash /home/jayesh0vasudeva/Housekeeping/tests/test_claude_rules.sh
-bash /home/jayesh0vasudeva/Housekeeping/tests/test_learning_finnish_skill.sh
+bash /home/jayesh0vasudeva/DearDiary/tests/test_claude_rules.sh
+bash /home/jayesh0vasudeva/DearDiary/tests/test_learning_finnish_skill.sh
 ```
 
 Expected: `test_claude_rules.sh` still all-pass (none of its existing assertions broke). `test_learning_finnish_skill.sh` now also passes the CLAUDE.md assertion. Install/uninstall asserts still fail.
 
 - [ ] **Step 3: Add the pointer assertion to test_claude_rules.sh too**
 
-Edit `/home/jayesh0vasudeva/Housekeeping/tests/test_claude_rules.sh`. Find:
+Edit `/home/jayesh0vasudeva/DearDiary/tests/test_claude_rules.sh`. Find:
 
 ```bash
 assert_file_contains "$rules_file" "slides: true"         "opt-in tag documented"
@@ -323,7 +323,7 @@ assert_file_contains "$rules_file" "learning-finnish"     "rules file points at 
 - [ ] **Step 4: Re-run test_claude_rules.sh, confirm new assertion passes**
 
 ```bash
-bash /home/jayesh0vasudeva/Housekeeping/tests/test_claude_rules.sh
+bash /home/jayesh0vasudeva/DearDiary/tests/test_claude_rules.sh
 ```
 
 Expected: all assertions pass.
@@ -331,7 +331,7 @@ Expected: all assertions pass.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /home/jayesh0vasudeva/Housekeeping
+cd /home/jayesh0vasudeva/DearDiary
 git add claude/CLAUDE.md tests/test_claude_rules.sh
 git commit -m "feat(claude): add learning-finnish pointer to global rules"
 ```
@@ -346,7 +346,7 @@ git commit -m "feat(claude): add learning-finnish pointer to global rules"
 
 - [ ] **Step 1: Add the skill-symlink block**
 
-Edit `/home/jayesh0vasudeva/Housekeeping/install.sh`. Find the line:
+Edit `/home/jayesh0vasudeva/DearDiary/install.sh`. Find the line:
 
 ```bash
 ln -sfn "$REPO_DIR/claude/CLAUDE.md" "$GLOBAL_RULES"
@@ -370,7 +370,7 @@ for skill in learning-finnish; do
         continue
     fi
     if [ -e "$dst" ] && [ ! -L "$dst" ]; then
-        backup="$dst.pre-housekeeping-install-backup"
+        backup="$dst.pre-deardiary-install-backup"
         mv "$dst" "$backup"
         echo "    backed up existing $dst -> $backup"
     fi
@@ -382,7 +382,7 @@ done
 - [ ] **Step 2: Run the skill test and confirm install.sh assertion now passes**
 
 ```bash
-bash /home/jayesh0vasudeva/Housekeeping/tests/test_learning_finnish_skill.sh
+bash /home/jayesh0vasudeva/DearDiary/tests/test_learning_finnish_skill.sh
 ```
 
 Expected: install assertion passes. Uninstall assertion still fails.
@@ -390,7 +390,7 @@ Expected: install assertion passes. Uninstall assertion still fails.
 - [ ] **Step 3: Commit**
 
 ```bash
-cd /home/jayesh0vasudeva/Housekeeping
+cd /home/jayesh0vasudeva/DearDiary
 git add install.sh
 git commit -m "feat(install): symlink claude/learning-finnish into ~/.claude/skills/"
 ```
@@ -405,7 +405,7 @@ git commit -m "feat(install): symlink claude/learning-finnish into ~/.claude/ski
 
 - [ ] **Step 1: Add the skill-removal block**
 
-Edit `/home/jayesh0vasudeva/Housekeeping/uninstall.sh`. Find:
+Edit `/home/jayesh0vasudeva/DearDiary/uninstall.sh`. Find:
 
 ```bash
 # Remove global Claude rules symlink (only if it points at our file)
@@ -441,7 +441,7 @@ fi
 - [ ] **Step 2: Run the skill test, confirm all assertions now pass**
 
 ```bash
-bash /home/jayesh0vasudeva/Housekeeping/tests/test_learning_finnish_skill.sh
+bash /home/jayesh0vasudeva/DearDiary/tests/test_learning_finnish_skill.sh
 ```
 
 Expected: every assertion passes; summary shows `Failed: 0`.
@@ -449,7 +449,7 @@ Expected: every assertion passes; summary shows `Failed: 0`.
 - [ ] **Step 3: Commit**
 
 ```bash
-cd /home/jayesh0vasudeva/Housekeeping
+cd /home/jayesh0vasudeva/DearDiary
 git add uninstall.sh
 git commit -m "feat(uninstall): remove learning-finnish skill symlink"
 ```
@@ -465,7 +465,7 @@ git commit -m "feat(uninstall): remove learning-finnish skill symlink"
 - [ ] **Step 1: Inspect the runner**
 
 ```bash
-cat /home/jayesh0vasudeva/Housekeeping/tests/run.sh
+cat /home/jayesh0vasudeva/DearDiary/tests/run.sh
 ```
 
 If it auto-discovers `test_*.sh` (via a glob), no change is needed — skip to Step 3.
@@ -475,7 +475,7 @@ If it lists tests explicitly, add `test_learning_finnish_skill.sh` to the list, 
 - [ ] **Step 2: Run the full suite**
 
 ```bash
-bash /home/jayesh0vasudeva/Housekeeping/tests/run.sh
+bash /home/jayesh0vasudeva/DearDiary/tests/run.sh
 ```
 
 Expected: all tests pass, including the new one.
@@ -483,7 +483,7 @@ Expected: all tests pass, including the new one.
 - [ ] **Step 3: Commit (only if Step 1 required a change)**
 
 ```bash
-cd /home/jayesh0vasudeva/Housekeeping
+cd /home/jayesh0vasudeva/DearDiary
 git add tests/run.sh
 git commit -m "test: include learning-finnish skill checks in runner"
 ```
@@ -499,14 +499,14 @@ If no change was needed, skip the commit.
 - [ ] **Step 1: Run installer**
 
 ```bash
-cd /home/jayesh0vasudeva/Housekeeping
+cd /home/jayesh0vasudeva/DearDiary
 ./install.sh
 ```
 
 Expected output includes a line like:
 
 ```
-    linked /home/jayesh0vasudeva/.claude/skills/learning-finnish -> /home/jayesh0vasudeva/Housekeeping/claude/learning-finnish
+    linked /home/jayesh0vasudeva/.claude/skills/learning-finnish -> /home/jayesh0vasudeva/DearDiary/claude/learning-finnish
 ```
 
 - [ ] **Step 2: Verify the symlink resolves to the SKILL.md**
@@ -515,7 +515,7 @@ Expected output includes a line like:
 readlink -f /home/jayesh0vasudeva/.claude/skills/learning-finnish/SKILL.md
 ```
 
-Expected: `/home/jayesh0vasudeva/Housekeeping/claude/learning-finnish/SKILL.md`
+Expected: `/home/jayesh0vasudeva/DearDiary/claude/learning-finnish/SKILL.md`
 
 - [ ] **Step 3: Verify CLAUDE.md is updated and active**
 
