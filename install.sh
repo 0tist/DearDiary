@@ -53,6 +53,25 @@ fi
 ln -sfn "$REPO_DIR/claude/CLAUDE.md" "$GLOBAL_RULES"
 echo "    linked $GLOBAL_RULES -> $REPO_DIR/claude/CLAUDE.md"
 
+# 1e. Symlink skills directories into ~/.claude/skills/<name>/
+SKILLS_DIR="$CLAUDE_DIR/skills"
+mkdir -p "$SKILLS_DIR"
+for skill in learning-finnish; do
+    src="$REPO_DIR/claude/$skill"
+    dst="$SKILLS_DIR/$skill"
+    if [ ! -d "$src" ]; then
+        echo "    SKIP: $src missing"
+        continue
+    fi
+    if [ -e "$dst" ] && [ ! -L "$dst" ]; then
+        backup="$dst.pre-deardiary-install-backup"
+        mv "$dst" "$backup"
+        echo "    backed up existing $dst -> $backup"
+    fi
+    ln -sfn "$src" "$dst"
+    echo "    linked $dst -> $src"
+done
+
 # 2. Merge settings.json
 python3 - "$SETTINGS" <<'PY'
 import json, os, sys

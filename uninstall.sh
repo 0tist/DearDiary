@@ -47,6 +47,21 @@ elif [ -e "$target" ]; then
     echo "    WARNING: $target exists and is not a symlink — leaving in place"
 fi
 
+# Remove skill symlinks (only if they point at our directories)
+SKILLS_DIR="$CLAUDE_DIR/skills"
+for skill in learning-finnish; do
+    target="$SKILLS_DIR/$skill"
+    if [ -L "$target" ]; then
+        rm -f "$target"
+        echo "    removed symlink $target"
+    elif [ -e "$target" ]; then
+        echo "    WARNING: $target exists and is not a symlink — leaving in place"
+    fi
+done
+if [ -d "$SKILLS_DIR" ] && [ -z "$(ls -A "$SKILLS_DIR" 2>/dev/null)" ]; then
+    rmdir "$SKILLS_DIR"
+fi
+
 # Strip hook entries
 if [ -f "$SETTINGS" ]; then
     python3 - "$SETTINGS" <<'PY'

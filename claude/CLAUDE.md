@@ -148,6 +148,18 @@ Default presenterm theme: `gruvbox-dark` (set in
 `PRESENTERM_THEME=<name> presenterm <file>` or, for the live TODO,
 `PRESENTERM_THEME=<name> todo`.
 
+## Learning Finnish ambiently
+
+The user is learning Finnish. At the start of every session, invoke the
+`learning-finnish` skill. The skill defines exactly where Finnish is
+allowed (greetings, acknowledgments, reactions, sign-offs), where it is
+forbidden (load-bearing content, code, errors, decisions), how to gloss,
+how to respond to mid-conversation volume signals, and when to drop
+Finnish entirely (user stress).
+
+This is a global behavior: it applies to every session unless a
+project-level `CLAUDE.md` overrides it.
+
 ## When in plan mode
 
 - Plan must be presented in the preseterm deck format at first save, not retrofitted later.

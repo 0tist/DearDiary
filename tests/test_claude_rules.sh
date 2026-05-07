@@ -14,6 +14,7 @@ assert_file_contains "$rules_file" "Slide boundaries"     "rule 1: slide boundar
 assert_file_contains "$rules_file" "mermaid"              "rule 2: mermaid diagrams"
 assert_file_contains "$rules_file" "100 words"            "rule 3: 100-word opt-in cap"
 assert_file_contains "$rules_file" "slides: true"         "opt-in tag documented"
+assert_file_contains "$rules_file" "learning-finnish"     "rules file points at learning-finnish skill"
 
 # install.sh and uninstall.sh reference the rules symlink
 assert_file_contains "$repo_dir/install.sh"   "CLAUDE.md" "install.sh wires CLAUDE.md"
