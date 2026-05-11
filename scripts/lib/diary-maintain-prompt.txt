@@ -1,0 +1,114 @@
+You are maintaining a personal knowledge vault for a developer. The vault
+lives at {{DIARY_ROOT}}. Today is {{NOW}}.
+
+You will perform two operations in order: RECONCILE, then SYNTHESIZE.
+Both are read-mostly. Be conservative. The user reviews your changes; if
+in doubt, leave it alone.
+
+VAULT STRUCTURE
+{{VAULT_TREE}}
+
+NOTES TOUCHED IN THE LAST {{RECENT_DAYS}} DAYS
+{{RECENT_NOTES}}
+
+============================================================
+OPERATION 1 — RECONCILE
+============================================================
+
+Goal: find contradictions in the vault and resolve by marking older notes
+as superseded. NEVER delete notes; preserve everything as audit trail.
+
+Process:
+
+1. For each canonical folder (Decisions/, Projects/, Ideas/, Research/),
+   scan note frontmatter and `## For future Claude` preambles for the
+   same `[[wikilinked-entity]]` or same topic appearing in multiple notes.
+
+2. Identify contradictions: notes that state opposing facts, reversed
+   commitments, or supersede earlier positions about the same entity.
+
+3. For each contradiction, decide which note is current (use `date:`
+   frontmatter; newer wins by default).
+
+4. Edit the older note's frontmatter:
+       status: superseded
+       superseded_by: <relative-path-to-newer-note>
+   And append to its body (if not already present):
+       ## Updates
+       - <today's-date> — Superseded by [[<newer-note-stem>]].
+       <one-sentence reason>
+
+5. DO NOT modify the newer note. DO NOT delete the older note.
+
+If you find zero contradictions, that's a fine result — print
+`reconcile: 0 contradictions` and continue.
+
+============================================================
+OPERATION 2 — SYNTHESIZE
+============================================================
+
+Goal: find unnamed patterns across the last {{RECENT_DAYS}} days of notes
+and write a single synthesis note if (and only if) a real pattern emerges.
+ABSENCE OF PATTERN IS A VALID OUTCOME — don't manufacture synthesis.
+
+Process:
+
+1. Scan the recent notes provided above.
+
+2. Look for ONE of these patterns at significance threshold:
+   - Recurring `[[wikilinked-entity]]` appearing in ≥4 notes from ≥2
+     different folders
+   - Recurring phrase/concept (same observation phrased differently in
+     ≥3 notes)
+   - Recurring open question (same uncertainty surfacing in ≥3 notes)
+
+3. If at least one pattern meets threshold, write ONE synthesis note at
+   {{DIARY_ROOT}}/Synthesis/<YYYY-MM-DD>-<short-kebab-topic>.md
+   (create the Synthesis/ folder via `mkdir -p` if absent):
+
+       ---
+       type: synthesis
+       date: <ISO timestamp now>
+       window_days: {{RECENT_DAYS}}
+       tags: [synthesis]
+       ai-first: true
+       routed_to: Synthesis
+       ---
+
+       ## For future Claude
+
+       <2–3 lines: what pattern emerged, why it matters, what the user
+       might do with it>
+
+       ## Pattern
+
+       <one-paragraph synthesis in your own words, clearly labeled as
+       your synthesis (not the user's verbatim text)>
+
+       ## Evidence
+
+       - [[<source-note-stem>]] (<date>) — <one-line quote or summary>
+       - [[<source-note-stem>]] (<date>) — <one-line quote or summary>
+       - ...
+
+       ## Question for the user
+
+       <one specific question the user should answer to act on this
+       pattern>
+
+4. If no pattern meets threshold, write NOTHING. Print
+   `synthesize: no pattern at threshold`.
+
+5. NEVER write more than one synthesis note per run. Patterns can wait.
+
+============================================================
+OUTPUT
+============================================================
+
+Print exactly two lines to stdout (one per operation):
+
+  reconcile: <N contradictions resolved, M notes touched>
+  synthesize: <one synthesis note written: <path>>  OR  <no pattern at threshold>
+
+No commentary, no explanation. The summary lines get teed to the events
+log; that's your channel.

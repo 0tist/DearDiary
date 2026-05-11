@@ -103,17 +103,19 @@ else
     echo "    no settings.json found — nothing to clean"
 fi
 
-# Unregister and remove the diary-processor launchd plist.
+# Unregister and remove the DearDiary launchd plists.
 LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
-PLIST_PATH="$LAUNCH_AGENTS/com.deardiary.process.plist"
-if [ -f "$PLIST_PATH" ]; then
-    if command -v launchctl >/dev/null 2>&1; then
-        launchctl bootout "gui/$(id -u)/com.deardiary.process" 2>/dev/null || \
-            launchctl unload "$PLIST_PATH" 2>/dev/null || true
-        echo "    unregistered launchd job com.deardiary.process"
+for label in com.deardiary.process com.deardiary.maintain; do
+    plist="$LAUNCH_AGENTS/$label.plist"
+    if [ -f "$plist" ]; then
+        if command -v launchctl >/dev/null 2>&1; then
+            launchctl bootout "gui/$(id -u)/$label" 2>/dev/null || \
+                launchctl unload "$plist" 2>/dev/null || true
+            echo "    unregistered launchd job $label"
+        fi
+        rm -f "$plist"
+        echo "    removed $plist"
     fi
-    rm -f "$PLIST_PATH"
-    echo "    removed $PLIST_PATH"
-fi
+done
 
 echo "==> Done. TODO.md, .todo-events.log, and ~/DearDiary/diary/ preserved."

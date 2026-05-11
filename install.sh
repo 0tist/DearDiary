@@ -145,6 +145,26 @@ else
     echo "    SKIP: launchctl not found"
 fi
 
+# 3d. Render and install launchd plist for the vault maintenance job.
+# Runs scripts/diary-maintain.sh every Wednesday and Sunday at 02:00.
+# Shares the diary-process lock so the two can't race.
+MAINTAIN_PLIST_NAME="com.deardiary.maintain.plist"
+MAINTAIN_PLIST_PATH="$LAUNCH_AGENTS/$MAINTAIN_PLIST_NAME"
+sed -e "s|{{REPO_DIR}}|$REPO_DIR|g" -e "s|{{HOME}}|$HOME|g" \
+    "$REPO_DIR/launchd/$MAINTAIN_PLIST_NAME.template" > "$MAINTAIN_PLIST_PATH"
+echo "    rendered $MAINTAIN_PLIST_PATH"
+
+if command -v launchctl >/dev/null 2>&1; then
+    launchctl bootout "gui/$(id -u)/com.deardiary.maintain" 2>/dev/null || true
+    if launchctl bootstrap "gui/$(id -u)" "$MAINTAIN_PLIST_PATH" 2>/dev/null; then
+        echo "    bootstrapped launchd job com.deardiary.maintain (Wed+Sun 02:00)"
+    else
+        launchctl load "$MAINTAIN_PLIST_PATH" 2>/dev/null && \
+            echo "    loaded launchd job com.deardiary.maintain (legacy load)" || \
+            echo "    WARNING: could not register launchd maintain job — load it manually"
+    fi
+fi
+
 # 4. Smoke test — one full Phase B cycle against a throwaway dir
 echo "==> Smoke test"
 tmp=$(mktemp -d)
