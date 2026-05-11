@@ -38,11 +38,14 @@ log_event() {
 phase_a() {
     # Fork Phase B fully detached and return immediately so the caller
     # (launchd / the Tauri app) is never blocked on `claude -p`.
+    # Use SCRIPT_REAL (absolute path) — if the user invoked us via a
+    # bare filename, $0 has no path component and bash would fail the
+    # subshell exec with "command not found".
     (
         DIARY_PROCESS_PHASE=B \
         HOOK_SESSION_ID="${HOOK_SESSION_ID:-$TRIGGER}" \
         HOOK_CWD="${HOOK_CWD:-$PWD}" \
-        "$0" "$TRIGGER" >>"$EVENT_LOG" 2>&1
+        "$SCRIPT_REAL" "$TRIGGER" >>"$EVENT_LOG" 2>&1
     ) </dev/null &
     disown 2>/dev/null || true
     exit 0

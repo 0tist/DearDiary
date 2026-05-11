@@ -14,7 +14,12 @@ DEARDIARY_DIR="${DEARDIARY_DIR:-$HOME/DearDiary}"
 DIARY_ROOT="$DEARDIARY_DIR"
 LOCK_DIR="$DEARDIARY_DIR/.diary-process.lock.d"   # shared with diary-process.sh
 EVENT_LOG="$DEARDIARY_DIR/.diary-events.log"
-PROMPT_TEMPLATE="$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")/lib/diary-maintain-prompt.txt"
+SCRIPT_REAL="$(readlink -f "$0" 2>/dev/null || echo "$0")"
+case "$SCRIPT_REAL" in
+    /*) ;;                                          # already absolute
+    *)  SCRIPT_REAL="$PWD/$SCRIPT_REAL" ;;          # readlink unavailable; resolve via PWD
+esac
+PROMPT_TEMPLATE="$(dirname "$SCRIPT_REAL")/lib/diary-maintain-prompt.txt"
 RECENT_DAYS="${RECENT_DAYS:-7}"   # window for synthesize step
 
 log_event() {
@@ -29,11 +34,13 @@ log_event() {
 }
 
 phase_a() {
+    # See diary-process.sh: use SCRIPT_REAL (absolute path) so the
+    # forked subshell can exec us when invoked via a bare filename.
     (
         DIARY_MAINTAIN_PHASE=B \
         HOOK_SESSION_ID="${HOOK_SESSION_ID:-$TRIGGER}" \
         HOOK_CWD="${HOOK_CWD:-$PWD}" \
-        "$0" "$TRIGGER" >>"$EVENT_LOG" 2>&1
+        "$SCRIPT_REAL" "$TRIGGER" >>"$EVENT_LOG" 2>&1
     ) </dev/null &
     disown 2>/dev/null || true
     exit 0
