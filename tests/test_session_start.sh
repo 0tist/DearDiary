@@ -37,4 +37,29 @@ rm "$tmp/TODO.md"
 output=$("$script")
 assert_eq "$output" "" "empty output when TODO.md missing"
 
+# _WORLD.md only — should still emit, with the WORLD content
+cat > "$tmp/_WORLD.md" <<EOF
+# _WORLD.md
+jayesh — Helsinki — terse responses, atomic commits.
+EOF
+output=$("$script")
+if command -v jq >/dev/null 2>&1; then
+    additional=$(echo "$output" | jq -r '.hookSpecificOutput.additionalContext // ""')
+    assert_contains "$additional" "Helsinki" "additionalContext includes _WORLD.md content when only WORLD exists"
+fi
+
+# Both files present — additionalContext contains both
+cp "$fixture_dir/todo-before.md" "$tmp/TODO.md"
+output=$("$script")
+if command -v jq >/dev/null 2>&1; then
+    additional=$(echo "$output" | jq -r '.hookSpecificOutput.additionalContext // ""')
+    assert_contains "$additional" "Helsinki"        "additionalContext includes WORLD content when both exist"
+    assert_contains "$additional" "wire up CLI flag" "additionalContext includes TODO content when both exist"
+fi
+
+# Both files missing — empty output
+rm "$tmp/TODO.md" "$tmp/_WORLD.md"
+output=$("$script")
+assert_eq "$output" "" "empty output when both files missing"
+
 print_summary
