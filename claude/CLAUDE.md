@@ -190,7 +190,7 @@ Default presenterm theme: `gruvbox-dark` (set in
 `~/DearDiary/` is both DearDiary's data directory AND the user's Obsidian
 folder-vault. When filing into the diary from any context (skills, scripts,
 ad-hoc invocations), prefer the PascalCase canonical folders `Ideas/`,
-`Projects/`, `People/`, `Decisions/`, `Daily/`, `Research/`. Use AI-first
+`Projects/`, `Decisions/`, `Daily/`, `Research/`. Use AI-first
 note format — frontmatter with `type`, `date`, `tags`, `ai-first: true`,
 and a `## For future Claude` preamble — so future Claude sessions can
 retrieve the right context cheaply.

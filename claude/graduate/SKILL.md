@@ -32,7 +32,6 @@ If the user is just musing about an idea (no commitment), DON'T trigger.
    - The source idea note (including any `## Estimate` section from
      `idea-evaluator`).
    - Any `Ideas/` or `Daily/` notes with overlapping `[[wikilinks]]`.
-   - Any `People/` notes the idea mentions (might be collaborators).
 
 3. **Create the project note** at
    `{{DIARY_ROOT}}/Projects/<short-kebab-title>.md`:

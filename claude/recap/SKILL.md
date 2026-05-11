@@ -24,8 +24,8 @@ different ask — point them at the `vault-health` skill instead.
 1. Resolve the period to a concrete date range. Default to local timezone.
 2. Scan vault notes whose `date:` frontmatter falls in the range. If a
    note has no `date:`, fall back to filesystem mtime.
-3. Group by folder (`Ideas/`, `Projects/`, `People/`, `Decisions/`,
-   `Daily/`, `Research/`, anything else).
+3. Group by folder (`Ideas/`, `Projects/`, `Decisions/`, `Daily/`,
+   `Research/`, anything else).
 4. For each group:
    - Count the notes
    - List the most notable 3-7 by title with a one-line summary each
