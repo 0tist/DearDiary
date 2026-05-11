@@ -49,7 +49,7 @@ fi
 
 # Remove skill symlinks (only if they point at our directories)
 SKILLS_DIR="$CLAUDE_DIR/skills"
-for skill in learning-finnish deardiary-fixer idea-evaluator; do
+for skill in learning-finnish deardiary-fixer idea-evaluator decision-logger vault-health recap challenge emerge graduate; do
     target="$SKILLS_DIR/$skill"
     if [ -L "$target" ]; then
         rm -f "$target"

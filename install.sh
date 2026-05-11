@@ -56,7 +56,7 @@ echo "    linked $GLOBAL_RULES -> $REPO_DIR/claude/CLAUDE.md"
 # 1e. Symlink skills directories into ~/.claude/skills/<name>/
 SKILLS_DIR="$CLAUDE_DIR/skills"
 mkdir -p "$SKILLS_DIR"
-for skill in learning-finnish deardiary-fixer idea-evaluator; do
+for skill in learning-finnish deardiary-fixer idea-evaluator decision-logger vault-health recap challenge emerge graduate; do
     src="$REPO_DIR/claude/$skill"
     dst="$SKILLS_DIR/$skill"
     if [ ! -d "$src" ]; then
