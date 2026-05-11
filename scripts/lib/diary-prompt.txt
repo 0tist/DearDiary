@@ -53,9 +53,16 @@ PROCEDURE — for EACH file in the inbox listing
        tags: [<short, lowercase>]
        ai-first: true
        routed_to: <folder>
+       confidence: <low|medium|high>   # ONLY if the entry makes uncertain claims; omit otherwise
    - Body opens with a `## For future Claude` section (2–3 short lines:
      what this note is for retrieval, key claim, links to related notes).
-   - Then the user's original text, preserved verbatim.
+   - Then the user's original text, preserved verbatim. If the user
+     pasted a quote, URL, or external claim, KEEP it word-for-word with
+     the source link inline.
+   - For any external claim, append a recency marker:
+     `(as of YYYY-MM-DD)` or `(source: <url>, accessed YYYY-MM-DD)`.
+     Skip this for the user's own thoughts — recency markers are only for
+     things sourced from outside the user's head.
    - Use `[[wikilinks]]` for any person/project/concept mentioned (the
      target note may not exist yet — that's fine, Obsidian creates a stub).
 4. If the entry contains an actionable TODO, edit {{TODO_FILE}} to append the
