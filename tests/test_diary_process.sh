@@ -68,7 +68,6 @@ fake_bin=$(make_fake_claude_script "$tmp" "$fake_script")
 # Run Phase B directly so the test is synchronous (Phase A forks and returns).
 PATH="$fake_bin:$PATH" \
 DEARDIARY_DIR="$tmp" \
-TODO_UPDATE_PHASE=B \
 DIARY_PROCESS_PHASE=B \
 HOOK_SESSION_ID="test" \
 HOOK_CWD="$PWD" \

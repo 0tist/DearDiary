@@ -31,25 +31,6 @@ markdown intended for review (paths like `docs/**/plans/*.md`,
 
 ### Tight-slides opt-in: `<!-- comment slides: true -->` marker
 
-**Why a `comment`-prefixed HTML comment, not frontmatter and not a bare
-HTML comment:** presenterm rejects frontmatter keys it doesn't know
-(`title`, `sub_title`, `event`, `location`, `date`, `author`, `authors`,
-`theme`, `options`), AND it parses every `<!-- X ... -->` as a directive
-where `X` must be a known command (`end_slide`, `pause`, `comment`,
-`speaker_note`, `column`, `font_size`, `include`, `alignment`, …). A bare
-`<!-- slides: true -->` hard-fails because `slides` isn't a known directive.
-
-The pattern that works for both presenterm and Claude:
-
-```
-<!-- comment slides: true — tight word cap convention -->
-```
-
-`comment` IS a known directive (no-op — presenterm renders nothing). Claude
-reads the rest of the line as a marker. The literal substring `slides: true`
-is preserved so anyone grepping the file (and our test suite) still finds
-the opt-in.
-
 When a plan file has this marker near the top, two things change:
 
 1. **Tighter word cap.** Each slide must stay ≤100 words (vs. the default
@@ -57,10 +38,9 @@ When a plan file has this marker near the top, two things change:
 2. **`---` becomes a valid separator.** Emit
    `options.end_slide_shorthand: true` in the frontmatter block, then you
    may use bare `---` thematic breaks as slide markers in addition to
-   `<!-- end_slide -->`. Convenient when the plan was drafted as a
-   `slides`-style deck.
+   `<!-- end_slide -->`.
 
-Example opt-in (frontmatter + marker comment):
+Example:
 
 ```yaml
 ---
@@ -72,9 +52,11 @@ options:
 <!-- comment slides: true -->
 ```
 
-The two go together: the marker switches Claude to ≤100-word mode, the
-frontmatter `options.end_slide_shorthand: true` lets you use `---` as
-slide separators. Either is harmless on its own.
+Why this exact shape: presenterm rejects unknown frontmatter keys, and it
+parses every `<!-- X ... -->` as a directive where `X` must be a known
+command (`end_slide`, `pause`, `comment`, `speaker_note`, …). `comment` is
+the only no-op variant — anything else hard-fails the deck. Don't fight
+the parser.
 
 Untagged plans keep the default 200-word cap and require `<!-- end_slide -->`.
 

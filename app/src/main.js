@@ -6,46 +6,28 @@ const saveBtn = document.getElementById("save");
 const processBtn = document.getElementById("process");
 const statusEl = document.getElementById("status");
 
-let lastSaveTs = null;
-let inboxCount = 0;
-
 function fmtTime(d) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-function renderStatus(msg) {
-  const parts = [];
-  if (msg) parts.push(msg);
-  if (lastSaveTs) parts.push(`saved ${fmtTime(lastSaveTs)}`);
-  parts.push(`inbox: ${inboxCount}`);
-  statusEl.textContent = parts.join(" · ");
-}
-
-async function refreshCount() {
-  if (!invoke) return;
-  try {
-    inboxCount = await invoke("inbox_count");
-  } catch (_) {
-    /* ignore */
-  }
-  renderStatus();
+function setStatus(msg) {
+  statusEl.textContent = msg;
 }
 
 async function save() {
   const text = entry.value;
   if (!text.trim()) return;
   if (!invoke) {
-    renderStatus("error: tauri bridge missing");
+    setStatus("error: tauri bridge missing");
     return;
   }
   saveBtn.disabled = true;
   try {
     await invoke("save_entry", { text });
     entry.value = "";
-    lastSaveTs = new Date();
-    await refreshCount();
+    setStatus(`saved ${fmtTime(new Date())}`);
   } catch (e) {
-    renderStatus(`error: ${e}`);
+    setStatus(`error: ${e}`);
   } finally {
     saveBtn.disabled = false;
     entry.focus();
@@ -57,11 +39,9 @@ async function processNow() {
   processBtn.disabled = true;
   try {
     await invoke("process_now");
-    renderStatus("processing…");
-    // Refresh after a beat — Phase B is async; Claude takes seconds to minutes
-    setTimeout(refreshCount, 5000);
+    setStatus("processing…");
   } catch (e) {
-    renderStatus(`error: ${e}`);
+    setStatus(`error: ${e}`);
   } finally {
     processBtn.disabled = false;
   }
@@ -75,7 +55,3 @@ entry.addEventListener("keydown", (e) => {
     save();
   }
 });
-
-// Initial paint + periodic refresh of inbox count
-refreshCount();
-setInterval(refreshCount, 30000);

@@ -13,9 +13,7 @@ INBOX FILES TO PROCESS:
 {{INBOX_LISTING}}
 
 DESTINATIONS YOU CAN USE
-- File the entry to {{DIARY_ROOT}}/<folder>/<id>.md, where <folder> is one of
-  the existing folders shown above (preferred — reuse, don't proliferate) or a
-  new folder you create with `mkdir -p` if none fit.
+- File the entry to {{DIARY_ROOT}}/<folder>/<id>.md (see CANONICAL FOLDERS).
 - If the entry implies a TODO, ALSO append a single bullet to the `## Active`
   section of {{TODO_FILE}}, prefixed with `- [misc] `.
 - Anything else stays in the diary; subject to per-skill rules below, you may
@@ -47,8 +45,7 @@ skill's own `## When to trigger` section decides when it activates.
 
 PROCEDURE — for EACH file in the inbox listing
 1. Read the file with the Read tool.
-2. Decide a destination folder name. Prefer the CANONICAL FOLDERS list above;
-   reuse existing ones; only invent a new PascalCase folder if nothing fits.
+2. Pick a destination per CANONICAL FOLDERS.
 3. Write the file to its destination using the Write tool. The filed entry
    must be AI-first (this is what obsidian-second-brain's agents consume):
    - Frontmatter:

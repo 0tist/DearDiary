@@ -91,26 +91,9 @@ fn process_now() -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-fn inbox_count() -> usize {
-    fs::read_dir(inbox_dir())
-        .map(|it| {
-            it.filter_map(|e| e.ok())
-                .filter(|e| {
-                    e.path()
-                        .extension()
-                        .and_then(|x| x.to_str())
-                        .map(|s| s == "md")
-                        .unwrap_or(false)
-                })
-                .count()
-        })
-        .unwrap_or(0)
-}
-
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![save_entry, process_now, inbox_count])
+        .invoke_handler(tauri::generate_handler![save_entry, process_now])
         .on_window_event(|window, event| {
             // Closing the window hides it instead of quitting, so the app
             // stays alive in the Dock as the user expects. Cmd+Q still quits.
