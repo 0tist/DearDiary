@@ -9,7 +9,7 @@ set -u
 TRIGGER="${1:-end}"
 DEARDIARY_DIR="${DEARDIARY_DIR:-$HOME/DearDiary}"
 TODO_FILE="$DEARDIARY_DIR/TODO.md"
-LOCK_FILE="$DEARDIARY_DIR/.todo-update.lock"
+LOCK_DIR="$DEARDIARY_DIR/.todo-update.lock.d"
 MTIME_FILE="$DEARDIARY_DIR/.todo-last-update"
 EVENT_LOG="$DEARDIARY_DIR/.todo-events.log"
 TMP_FILE="$DEARDIARY_DIR/TODO.md.tmp"
@@ -55,17 +55,21 @@ phase_a() {
 }
 
 phase_b() {
-    # Acquire lock, non-blocking
-    exec 200>"$LOCK_FILE"
-    if ! flock -n 200; then
+    # Acquire lock via atomic mkdir (portable; macOS doesn't ship flock(1)).
+    if ! mkdir "$LOCK_DIR" 2>/dev/null; then
         log_event "lock_held"
         exit 0
     fi
+    # shellcheck disable=SC2064
+    trap "rmdir '$LOCK_DIR' 2>/dev/null" EXIT
 
     # Throttle (skip for 'end' trigger)
     if [ "$TRIGGER" = "stop" ] && [ -f "$MTIME_FILE" ]; then
         local last_update_ts now diff
-        last_update_ts=$(stat -c %Y "$MTIME_FILE" 2>/dev/null || echo 0)
+        # GNU stat (-c %Y) on Linux, BSD stat (-f %m) on macOS — try both.
+        last_update_ts=$(stat -c %Y "$MTIME_FILE" 2>/dev/null \
+            || stat -f %m "$MTIME_FILE" 2>/dev/null \
+            || echo 0)
         now=$(date +%s)
         diff=$((now - last_update_ts))
         if [ "$diff" -lt "$THROTTLE_SECONDS" ]; then
@@ -107,9 +111,16 @@ phase_b() {
     # cold-start against the triggering session's plugins / hooks / CLAUDE.md.
     # 180s budget covers slower cold-starts on the first call after the
     # binary's session cache is empty.
-    local new_todo claude_stderr claude_stderr_tail
+    local new_todo claude_stderr claude_stderr_tail timeout_cmd
     claude_stderr=$(mktemp)
-    if ! new_todo=$(cd "$DEARDIARY_DIR" && timeout 180 claude -p --model claude-haiku-4-5-20251001 "$prompt" 2>"$claude_stderr"); then
+    if command -v timeout >/dev/null 2>&1; then
+        timeout_cmd="timeout 180"
+    elif command -v gtimeout >/dev/null 2>&1; then
+        timeout_cmd="gtimeout 180"
+    else
+        timeout_cmd=""
+    fi
+    if ! new_todo=$(cd "$DEARDIARY_DIR" && $timeout_cmd claude -p --model claude-haiku-4-5-20251001 "$prompt" 2>"$claude_stderr"); then
         claude_stderr_tail=$(tail -c 400 "$claude_stderr" 2>/dev/null | tr '\n"' ' ' | sed 's/[[:space:]]\+/ /g')
         rm -f "$claude_stderr"
         log_event "claude_error" "${claude_stderr_tail:-no_stderr}"

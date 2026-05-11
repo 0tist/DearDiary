@@ -46,11 +46,14 @@ assert_file_contains() {
 
 # Create a temp workspace and register cleanup on script EXIT in the caller's shell.
 # Usage: setup_tmp tmp    # sets $tmp to a new temp dir, cleans up when test script exits
+# (Avoids `local -n` so this works on macOS' default bash 3.2.)
 setup_tmp() {
-    local -n _setup_tmp_ref="$1"
-    _setup_tmp_ref=$(mktemp -d)
+    local _name="$1"
+    local _dir
+    _dir=$(mktemp -d)
+    eval "$_name=\"\$_dir\""
     # shellcheck disable=SC2064
-    trap "rm -rf '$_setup_tmp_ref'" EXIT
+    trap "rm -rf '$_dir'" EXIT
 }
 
 # Build a fake `claude` binary that echoes the file at $1 and put it first on PATH.
@@ -63,6 +66,22 @@ make_fake_claude() {
 #!/usr/bin/env bash
 # Fake claude CLI for tests. Ignores all args, just outputs the fixture.
 cat "$output_file"
+EOF
+    chmod +x "$bin/claude"
+    echo "$bin"
+}
+
+# Build a fake `claude` binary that exec's an arbitrary script. Useful when
+# the real claude would do file I/O via tools (Write/Edit/mv) — the script
+# can simulate those side effects.
+# The script runs with the same args claude was called with.
+make_fake_claude_script() {
+    local tmpdir="$1" script_path="$2"
+    local bin="$tmpdir/bin"
+    mkdir -p "$bin"
+    cat > "$bin/claude" <<EOF
+#!/usr/bin/env bash
+exec "$script_path" "\$@"
 EOF
     chmod +x "$bin/claude"
     echo "$bin"

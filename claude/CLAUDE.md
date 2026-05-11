@@ -29,28 +29,52 @@ markdown intended for review (paths like `docs/**/plans/*.md`,
   subtitle, and nothing else. No body content competing with the title.
 - **Last slide summarizes** with the key decisions/next steps in 3–5 bullets.
 
-### Tight-slides opt-in: `slides: true` front matter
+### Tight-slides opt-in: `<!-- comment slides: true -->` marker
 
-When a plan file begins with YAML front matter containing `slides: true`,
-two things change:
+**Why a `comment`-prefixed HTML comment, not frontmatter and not a bare
+HTML comment:** presenterm rejects frontmatter keys it doesn't know
+(`title`, `sub_title`, `event`, `location`, `date`, `author`, `authors`,
+`theme`, `options`), AND it parses every `<!-- X ... -->` as a directive
+where `X` must be a known command (`end_slide`, `pause`, `comment`,
+`speaker_note`, `column`, `font_size`, `include`, `alignment`, …). A bare
+`<!-- slides: true -->` hard-fails because `slides` isn't a known directive.
+
+The pattern that works for both presenterm and Claude:
+
+```
+<!-- comment slides: true — tight word cap convention -->
+```
+
+`comment` IS a known directive (no-op — presenterm renders nothing). Claude
+reads the rest of the line as a marker. The literal substring `slides: true`
+is preserved so anyone grepping the file (and our test suite) still finds
+the opt-in.
+
+When a plan file has this marker near the top, two things change:
 
 1. **Tighter word cap.** Each slide must stay ≤100 words (vs. the default
    ~200). Split aggressively into multiple `## ` (or `### `) sub-slides.
 2. **`---` becomes a valid separator.** Emit
-   `options.end_slide_shorthand: true` in the same front matter block, then
-   you may use bare `---` thematic breaks as slide markers in addition to
+   `options.end_slide_shorthand: true` in the frontmatter block, then you
+   may use bare `---` thematic breaks as slide markers in addition to
    `<!-- end_slide -->`. Convenient when the plan was drafted as a
    `slides`-style deck.
 
-Example opt-in front matter:
+Example opt-in (frontmatter + marker comment):
 
 ```yaml
 ---
-slides: true
 options:
   end_slide_shorthand: true
 ---
 ```
+```
+<!-- comment slides: true -->
+```
+
+The two go together: the marker switches Claude to ≤100-word mode, the
+frontmatter `options.end_slide_shorthand: true` lets you use `---` as
+slide separators. Either is harmless on its own.
 
 Untagged plans keep the default 200-word cap and require `<!-- end_slide -->`.
 
@@ -73,12 +97,17 @@ _2026-05-06 · jayesh · scope: backend only_
 
 ## Architecture
 
-```mermaid +render
-graph LR
-  Client --> Gateway
-  Gateway --> AuthSvc[Auth Service]
-  AuthSvc --> KMS[(KMS)]
-  AuthSvc --> Sessions[(Session DB)]
+```
+┌────────┐     ┌─────────┐     ┌──────────────┐     ┌────────────┐
+│        │     │         │     │              │     │            │
+│ Client ├────►│ Gateway ├────►│ Auth Service ├────►│    KMS     │
+│        │     │         │     │              │     │            │
+└────────┘     └─────────┘     └───────┬──────┘     └────────────┘
+                                       │
+                                       ▼
+                                ┌────────────┐
+                                │ Session DB │
+                                └────────────┘
 ```
 
 <!-- end_slide -->
@@ -91,31 +120,57 @@ graph LR
 4. Remove old code path (week 5)
 ````
 
-## Diagrams: always Mermaid + `+render`
+## Diagrams: pre-render to ASCII
 
-When a diagram would help, use Mermaid in a fenced code block tagged with
-`mermaid` and the `+render` modifier so presenterm renders it as a real image
-during the slideshow (via `mmdc`, already installed at
-`~/.npm-global/bin/mmdc`):
+`mermaid +render` via `mmdc` is unreliable in this presenterm setup, so
+diagrams in slide source files are **always ASCII art in a plain fenced
+code block** — never `mermaid` blocks with `+render`.
 
-````markdown
-```mermaid +render
-flowchart TD
+Workflow when adding a diagram:
+
+1. Sketch in mermaid syntax in your head or a scratch file.
+2. Pipe through `mmd --ascii -w <width>` to render to ASCII art.
+3. Paste the ASCII output into a plain fenced code block (no language tag).
+
+Example shell invocation:
+
+```bash
+echo 'flowchart TD
   A[Input] --> B{Validate}
   B -->|ok| C[Process]
-  B -->|fail| D[Reject]
+  B -->|fail| D[Reject]' | mmd --ascii -w 60
 ```
-````
 
-- **Optional sizing:** add `+width:50%` (or any percentage) to control image
-  width. Useful for dense flowcharts.
-- **Don't paste ASCII art** of diagrams into plan files. Let presenterm
-  render the real thing. (ASCII art via `mmd --ascii` is fine in *terminal
-  output* and chat replies, just not in slide source files.)
-- **Don't pre-render to PNG** and embed images. The plan file should stay
-  human-editable; presenterm renders on the fly.
-- Mermaid types worth knowing: `flowchart`/`graph`, `sequenceDiagram`,
-  `classDiagram`, `erDiagram`, `stateDiagram`, `gantt`, `gitGraph`.
+Resulting slide content (paste verbatim into the deck):
+
+```
+┌──────────┐
+│  Input   │
+└─────┬────┘
+      │
+      ▼
+┌──────────┐
+│ Validate ├───fail────┐
+└─────┬────┘           │
+      │                │
+     ok                │
+      │                ▼
+      ▼          ┌────────┐
+┌──────────┐     │ Reject │
+│ Process  │     └────────┘
+└──────────┘
+```
+
+`mmd --ascii` (uses `mermaid-ascii` under the hood) panics on some edge
+configurations — cycles, dense crossings. When that happens, hand-draw
+the ASCII art using box-drawing characters (`┌─┐│└┘├┤┬┴┼►▼◄▲`). Either
+way, the slide ends up as a plain code block.
+
+- **Don't pre-render to PNG** and embed images. Slide files stay
+  human-editable.
+- Mermaid syntax types worth knowing as a sketching language:
+  `flowchart`/`graph`, `sequenceDiagram`, `classDiagram`, `erDiagram`,
+  `stateDiagram`, `gantt`, `gitGraph`.
 
 ## Quirks to avoid
 
@@ -147,6 +202,19 @@ Default presenterm theme: `gruvbox-dark` (set in
 `~/.config/presenterm/config.yaml`). Override per-invocation with
 `PRESENTERM_THEME=<name> presenterm <file>` or, for the live TODO,
 `PRESENTERM_THEME=<name> todo`.
+
+## The DearDiary vault layout
+
+`~/DearDiary/` is both DearDiary's data directory AND an Obsidian vault
+(opened as a folder-vault). The
+[obsidian-second-brain](https://github.com/eugeniughelbur/obsidian-second-brain)
+skill (when installed by the user separately) runs nightly agents over this
+same path and expects a specific top-level layout: `Ideas/`, `Projects/`,
+`People/`, `Decisions/`, `Daily/`, `Research/`. When filing into the diary
+from any context (skills, scripts, ad-hoc invocations), prefer these
+PascalCase folders. Use AI-first note format — frontmatter with `type`,
+`date`, `tags`, `ai-first: true`, and a `## For future Claude` preamble —
+so the vault stays consumable by obsidian-second-brain's agents.
 
 ## Learning Finnish ambiently
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.deardiary.process</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{REPO_DIR}}/scripts/diary-process.sh</string>
+        <string>cron</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>900</integer>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>{{HOME}}</string>
+        <key>DEARDIARY_DIR</key>
+        <string>{{HOME}}/DearDiary</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>{{HOME}}/DearDiary/.diary-process.stdout</string>
+
+    <key>StandardErrorPath</key>
+    <string>{{HOME}}/DearDiary/.diary-process.stderr</string>
+</dict>
+</plist>

@@ -1,0 +1,15 @@
+{
+  "name": "deardiary-app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "DearDiary compose window — captures entries to ~/DearDiary/diary/inbox/",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}

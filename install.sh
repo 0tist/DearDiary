@@ -56,7 +56,7 @@ echo "    linked $GLOBAL_RULES -> $REPO_DIR/claude/CLAUDE.md"
 # 1e. Symlink skills directories into ~/.claude/skills/<name>/
 SKILLS_DIR="$CLAUDE_DIR/skills"
 mkdir -p "$SKILLS_DIR"
-for skill in learning-finnish; do
+for skill in learning-finnish deardiary-fixer idea-evaluator; do
     src="$REPO_DIR/claude/$skill"
     dst="$SKILLS_DIR/$skill"
     if [ ! -d "$src" ]; then
@@ -114,6 +114,37 @@ else
     echo "    $TODO_FILE already exists (left alone)"
 fi
 
+# 3b. Diary inbox + processed dirs (Tauri app writes inbox; processor moves to processed)
+DIARY_DIR="$HOME/DearDiary/diary"
+mkdir -p "$DIARY_DIR/inbox" "$DIARY_DIR/processed"
+echo "    ensured $DIARY_DIR/{inbox,processed}/"
+
+# 3c. Render and install launchd plist for the diary inbox processor.
+# Runs scripts/diary-process.sh every 15 minutes. The Tauri app's "Process Now"
+# button hits the same script directly, so cron is just a safety net.
+LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
+PLIST_NAME="com.deardiary.process.plist"
+PLIST_PATH="$LAUNCH_AGENTS/$PLIST_NAME"
+mkdir -p "$LAUNCH_AGENTS"
+sed -e "s|{{REPO_DIR}}|$REPO_DIR|g" -e "s|{{HOME}}|$HOME|g" \
+    "$REPO_DIR/launchd/$PLIST_NAME.template" > "$PLIST_PATH"
+echo "    rendered $PLIST_PATH"
+
+# Reload: bootout (ignore failures — fine if not loaded) then bootstrap.
+if command -v launchctl >/dev/null 2>&1; then
+    launchctl bootout "gui/$(id -u)/com.deardiary.process" 2>/dev/null || true
+    if launchctl bootstrap "gui/$(id -u)" "$PLIST_PATH" 2>/dev/null; then
+        echo "    bootstrapped launchd job com.deardiary.process (every 900s)"
+    else
+        # Older macOS: fall back to load
+        launchctl load "$PLIST_PATH" 2>/dev/null && \
+            echo "    loaded launchd job com.deardiary.process (legacy load)" || \
+            echo "    WARNING: could not register launchd job — load it manually"
+    fi
+else
+    echo "    SKIP: launchctl not found"
+fi
+
 # 4. Smoke test — one full Phase B cycle against a throwaway dir
 echo "==> Smoke test"
 tmp=$(mktemp -d)
@@ -132,5 +163,10 @@ fi
 
 echo
 echo "==> Done. Hooks active in future Claude Code sessions."
-echo "    TODO file: $TODO_FILE"
-echo "    Event log: $REPO_DIR/.todo-events.log"
+echo "    TODO file:  $TODO_FILE"
+echo "    Event log:  $REPO_DIR/.todo-events.log"
+echo "    Diary dir:  $DIARY_DIR"
+echo
+echo "    To build the Tauri GUI:"
+echo "      cd app && npm install && npm run tauri build"
+echo "    Then drag app/src-tauri/target/release/bundle/macos/DearDiary.app to /Applications."

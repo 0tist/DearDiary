@@ -49,7 +49,7 @@ fi
 
 # Remove skill symlinks (only if they point at our directories)
 SKILLS_DIR="$CLAUDE_DIR/skills"
-for skill in learning-finnish; do
+for skill in learning-finnish deardiary-fixer idea-evaluator; do
     target="$SKILLS_DIR/$skill"
     if [ -L "$target" ]; then
         rm -f "$target"
@@ -103,4 +103,17 @@ else
     echo "    no settings.json found — nothing to clean"
 fi
 
-echo "==> Done. TODO.md and .todo-events.log preserved."
+# Unregister and remove the diary-processor launchd plist.
+LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
+PLIST_PATH="$LAUNCH_AGENTS/com.deardiary.process.plist"
+if [ -f "$PLIST_PATH" ]; then
+    if command -v launchctl >/dev/null 2>&1; then
+        launchctl bootout "gui/$(id -u)/com.deardiary.process" 2>/dev/null || \
+            launchctl unload "$PLIST_PATH" 2>/dev/null || true
+        echo "    unregistered launchd job com.deardiary.process"
+    fi
+    rm -f "$PLIST_PATH"
+    echo "    removed $PLIST_PATH"
+fi
+
+echo "==> Done. TODO.md, .todo-events.log, and ~/DearDiary/diary/ preserved."
