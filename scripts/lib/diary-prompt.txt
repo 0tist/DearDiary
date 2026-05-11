@@ -19,10 +19,9 @@ DESTINATIONS YOU CAN USE
 - Anything else stays in the diary; subject to per-skill rules below, you may
   also write to the DearDiary source repo and open PRs there.
 
-CANONICAL FOLDERS (obsidian-second-brain compatibility)
-The diary root is also the user's Obsidian vault. The obsidian-second-brain
-skill maintains it on a nightly schedule and expects a specific layout.
-PREFER these folders over lowercase or invented variants:
+CANONICAL FOLDERS
+The diary root is also the user's Obsidian folder-vault. PREFER these
+PascalCase folders over lowercase or invented variants:
 
 - `Ideas/`      — captures, hunches, things to explore later
 - `Projects/`   — active and in-flight work
@@ -32,8 +31,7 @@ PREFER these folders over lowercase or invented variants:
 - `Research/`   — external research, dossiers, citations
 
 If an entry doesn't fit any of these, create a new PascalCase folder (e.g.
-`Health/`, `Reading/`). Avoid lowercase like `ideas/` or `finance/` —
-obsidian-second-brain's agents look for the canonical names.
+`Health/`, `Reading/`). Avoid lowercase like `ideas/` or `finance/`.
 
 SKILLS — applied on top of the default routing
 The following installed skills extend the default behavior. For each entry,
@@ -47,7 +45,8 @@ PROCEDURE — for EACH file in the inbox listing
 1. Read the file with the Read tool.
 2. Pick a destination per CANONICAL FOLDERS.
 3. Write the file to its destination using the Write tool. The filed entry
-   must be AI-first (this is what obsidian-second-brain's agents consume):
+   must be AI-first (notes written for future-Claude retrieval, not for
+   human reading):
    - Frontmatter:
        type: <idea|project|person|decision|daily|research|note>
        date: <ISO timestamp from the original `created_at`>

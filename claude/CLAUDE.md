@@ -187,16 +187,13 @@ Default presenterm theme: `gruvbox-dark` (set in
 
 ## The DearDiary vault layout
 
-`~/DearDiary/` is both DearDiary's data directory AND an Obsidian vault
-(opened as a folder-vault). The
-[obsidian-second-brain](https://github.com/eugeniughelbur/obsidian-second-brain)
-skill (when installed by the user separately) runs nightly agents over this
-same path and expects a specific top-level layout: `Ideas/`, `Projects/`,
-`People/`, `Decisions/`, `Daily/`, `Research/`. When filing into the diary
-from any context (skills, scripts, ad-hoc invocations), prefer these
-PascalCase folders. Use AI-first note format — frontmatter with `type`,
-`date`, `tags`, `ai-first: true`, and a `## For future Claude` preamble —
-so the vault stays consumable by obsidian-second-brain's agents.
+`~/DearDiary/` is both DearDiary's data directory AND the user's Obsidian
+folder-vault. When filing into the diary from any context (skills, scripts,
+ad-hoc invocations), prefer the PascalCase canonical folders `Ideas/`,
+`Projects/`, `People/`, `Decisions/`, `Daily/`, `Research/`. Use AI-first
+note format — frontmatter with `type`, `date`, `tags`, `ai-first: true`,
+and a `## For future Claude` preamble — so future Claude sessions can
+retrieve the right context cheaply.
 
 ## Learning Finnish ambiently
 

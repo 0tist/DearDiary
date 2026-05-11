@@ -47,38 +47,6 @@ or `PRESENTERM_IMAGE_PROTOCOL=ascii-blocks` to override defaults.
 Mermaid code blocks render natively in presenterm via the `mmdc` we
 already have installed.
 
-### Using with obsidian-second-brain
-
-`~/DearDiary/` doubles as an Obsidian folder-vault. Pair it with
-[`obsidian-second-brain`](https://github.com/eugeniughelbur/obsidian-second-brain)
-(a 31-command Claude Code skill that runs nightly agents to rewrite, reconcile,
-and synthesize the vault) to turn DearDiary's frictionless capture into a
-self-maintaining second brain.
-
-Setup (one-time):
-
-```bash
-# 1. Install obsidian-second-brain in its own location
-git clone https://github.com/eugeniughelbur/obsidian-second-brain \
-    ~/src/obsidian-second-brain
-cd ~/src/obsidian-second-brain && bash install.sh
-
-# 2. Configure its vault path to ~/DearDiary/ (per its docs)
-
-# 3. Initialize the vault from a Claude Code session in ~/DearDiary/
-cd ~/DearDiary && claude
-> /obsidian-init
-```
-
-Day-to-day: nothing changes. DearDiary captures and files into the canonical
-folders (`Ideas/`, `Projects/`, `People/`, `Decisions/`, `Daily/`, `Research/`)
-with AI-first frontmatter; obsidian-second-brain's nightly agents pick the
-new files up and rewrite vault pages accordingly. The two systems share a
-filesystem path and run on independent schedules — no bridge daemon, no IPC.
-
-See `scripts/lib/diary-prompt.txt` and `claude/CLAUDE.md` for the routing
-rules that keep the diary processor's output compatible.
-
 ### Diary skills
 
 Two installable skills that extend the diary processor's default routing.
