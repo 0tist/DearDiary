@@ -40,10 +40,21 @@ Twice a week (Wed + Sun, 02:00), a second cron runs over the whole vault:
 - **Reconcile** — finds contradictions across `Decisions/`, `Projects/`,
   `Ideas/`, `Research/`; marks the older note `status: superseded` with
   a link forward + an `## Updates` section. Never deletes anything.
-- **Synthesize** — scans the last 7 days for recurring patterns; writes
-  at most one synthesis note to `Synthesis/<date>-<topic>.md` when a
-  pattern crosses the significance threshold. Absence of pattern is a
-  valid outcome.
+- **Consolidate** — three sub-operations on notes touched in the last
+  7 days:
+  - **Rename**: timestamped filenames → descriptive kebab-case slugs
+    (`Ideas/2026-05-14T13-22-00.md` → `Ideas/ct-mri-generalization.md`).
+    `original_id` is preserved in frontmatter.
+  - **Merge within a folder** (≥80% confidence): when ≥2 notes in the
+    same canonical folder are clearly about the same topic, pick a
+    canonical, merge their bodies under `## Original notes`, and
+    rewrite the non-canonical sources as stub redirects
+    (`merged_into:` frontmatter + a `Moved → [[canonical]]` body).
+    Wikilinks pointing at the old path still resolve via the stub.
+  - **Cross-folder wikilink** (no merge): when a note in one folder is
+    about the same topic as a note in another (e.g. `Projects/x` and
+    `Ideas/x`), add bidirectional `> Origin:` / `> Became:` blockquotes
+    after the `## For future Claude` preamble. Notes stay independent.
 
 Every new Claude Code session (anywhere on your machine) gets two files
 auto-injected as `additionalContext`:

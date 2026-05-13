@@ -1,7 +1,7 @@
 You are maintaining a personal knowledge vault for a developer. The vault
 lives at {{DIARY_ROOT}}. Today is {{NOW}}.
 
-You will perform two operations in order: RECONCILE, then SYNTHESIZE.
+You will perform two operations in order: RECONCILE, then CONSOLIDATE.
 Both are read-mostly. Be conservative. The user reviews your changes; if
 in doubt, leave it alone.
 
@@ -44,71 +44,102 @@ If you find zero contradictions, that's a fine result — print
 `reconcile: 0 contradictions` and continue.
 
 ============================================================
-OPERATION 2 — SYNTHESIZE
+OPERATION 2 — CONSOLIDATE (rename + merge + cross-link)
 ============================================================
 
-Goal: find unnamed patterns across the last {{RECENT_DAYS}} days of notes
-and write a single synthesis note if (and only if) a real pattern emerges.
-ABSENCE OF PATTERN IS A VALID OUTCOME — don't manufacture synthesis.
+Goal: keep the vault from accumulating timestamped, duplicate, and
+orphaned notes. Three sub-operations, applied to notes shown above.
 
-Process:
+DO NOT write to the legacy {{DIARY_ROOT}}/Synthesis/ folder. Standalone
+synthesis pages are not produced anymore — consolidation happens inside
+the canonical folders themselves.
 
-1. Scan the recent notes provided above.
+------------------------------------------------------------
+2a. RENAME timestamped filenames (unconditional)
+------------------------------------------------------------
 
-2. Look for ONE of these patterns at significance threshold:
-   - Recurring `[[wikilinked-entity]]` appearing in ≥4 notes from ≥2
-     different folders
-   - Recurring phrase/concept (same observation phrased differently in
-     ≥3 notes)
-   - Recurring open question (same uncertainty surfacing in ≥3 notes)
+For any note in a canonical folder whose filename matches a timestamp
+pattern (YYYY-MM-DDTHH-MM-SS.md or similar), generate a kebab-case slug
+from the note's content (3–5 words that capture the topic). Rename the
+file via `mv` to <slug>.md.
 
-3. If at least one pattern meets threshold, write ONE synthesis note at
-   {{DIARY_ROOT}}/Synthesis/<YYYY-MM-DD>-<short-kebab-topic>.md
-   (create the Synthesis/ folder via `mkdir -p` if absent):
+- Preserve the original ID by adding `original_id: <timestamp>` to the
+  frontmatter.
+- If a file with that exact slug already exists in the same folder AND
+  is about the same topic, skip rename and go to 2b (MERGE).
+- If a file with that exact slug exists but is about a different topic,
+  pick a disambiguating slug (add a distinguishing word).
+- Don't rename files that already have descriptive slugs.
+
+------------------------------------------------------------
+2b. MERGE within a folder (≥80% confidence)
+------------------------------------------------------------
+
+Identify clusters of ≥2 notes in the SAME canonical folder that are
+clearly about the same topic. Threshold: ≥80% confident — uncertain
+clusters stay separate.
+
+For each cluster:
+
+1. Pick the canonical: the note with the most substantive content (oldest
+   if tied).
+2. Apply 2a to rename the canonical to a topic-slug if it's still
+   timestamped.
+3. MERGE bodies: append each non-canonical source's verbatim content to
+   the canonical under a new `## Original notes` section, each subsection
+   prefixed by `### From <slug-or-id> (<date>)`.
+4. Revise the canonical's `## For future Claude` preamble to reflect ALL
+   inputs (the merged perspective, not just the canonical's original
+   take). Keep it 2–3 lines.
+5. For each non-canonical source note, REWRITE the body to a stub
+   redirect — preserve its frontmatter and add `merged_into:`:
 
        ---
-       type: synthesis
-       date: <ISO timestamp now>
-       window_days: {{RECENT_DAYS}}
-       tags: [synthesis]
+       type: <original type>
+       date: <original date>
+       original_id: <if present>
+       merged_into: <relative-path-to-canonical>
        ai-first: true
-       routed_to: Synthesis
        ---
 
-       ## For future Claude
+       Moved → [[<canonical-slug>]].
 
-       <2–3 lines: what pattern emerged, why it matters, what the user
-       might do with it>
+   Existing `[[wikilinks]]` pointing at this path still resolve (Obsidian
+   shows the stub), and the stub points readers at the canonical.
 
-       ## Pattern
+------------------------------------------------------------
+2c. CROSS-FOLDER WIKILINK (don't merge — just connect)
+------------------------------------------------------------
 
-       <one-paragraph synthesis in your own words, clearly labeled as
-       your synthesis (not the user's verbatim text)>
+When a note in one folder is clearly about the same topic as a note in a
+DIFFERENT canonical folder (e.g. Projects/<x> and Ideas/<x>), DON'T
+merge them. Add bidirectional wikilinks via short labeled blockquotes,
+placed right after the `## For future Claude` preamble.
 
-       ## Evidence
+Recommended labels:
 
-       - [[<source-note-stem>]] (<date>) — <one-line quote or summary>
-       - [[<source-note-stem>]] (<date>) — <one-line quote or summary>
-       - ...
+- A later-stage note pointing back to its origin idea/note:
+      > Origin: [[Ideas/<x>]]
+- An earlier-stage note pointing forward to what it became:
+      > Became: [[Projects/<x>]]   (or  > Decided: [[Decisions/<x>]] )
+- Same-tier or unclear direction:
+      > See also: [[<other-stem>]]
 
-       ## Question for the user
+DO NOT trigger the `graduate` skill behavior here. Maintain only adds
+wikilinks and a one-line label — it never creates new project scaffolding,
+never copies content between folders, never deletes the originals. The
+two notes stay independent, just visibly linked.
 
-       <one specific question the user should answer to act on this
-       pattern>
-
-4. If no pattern meets threshold, write NOTHING. Print
-   `synthesize: no pattern at threshold`.
-
-5. NEVER write more than one synthesis note per run. Patterns can wait.
-
-============================================================
+------------------------------------------------------------
 OUTPUT
-============================================================
+------------------------------------------------------------
 
-Print exactly two lines to stdout (one per operation):
+Print exactly two summary lines to stdout:
 
   reconcile: <N contradictions resolved, M notes touched>
-  synthesize: <one synthesis note written: <path>>  OR  <no pattern at threshold>
+  consolidate: renamed <N>, merged into <M> canonicals, cross-linked <K>
 
-No commentary, no explanation. The summary lines get teed to the events
-log; that's your channel.
+If a sub-operation produced nothing, use 0:
+  consolidate: renamed 0, merged 0, cross-linked 0
+
+No commentary, no explanation.

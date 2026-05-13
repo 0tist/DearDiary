@@ -104,7 +104,7 @@ phase_b() {
     if ! (cd "$DIARY_ROOT" && printf '%s' "$prompt" | $timeout_cmd claude -p \
             --model claude-haiku-4-5-20251001 \
             --permission-mode acceptEdits \
-            --allowedTools "Read,Write,Edit,Glob,Bash(mkdir:*)" \
+            --allowedTools "Read,Write,Edit,Glob,Bash(mkdir:*),Bash(mv:*)" \
             >"$claude_stdout" 2>"$claude_stderr"); then
         local stderr_tail
         stderr_tail=$(tail -c 400 "$claude_stderr" 2>/dev/null | tr '\n"' ' ' | sed 's/[[:space:]]\+/ /g')
