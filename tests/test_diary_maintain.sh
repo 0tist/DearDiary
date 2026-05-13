@@ -272,6 +272,17 @@ assert_file_contains "$tmp/Ideas/api-rewrite-thoughts.md"  "Became: [[Projects/a
     { TESTS_PASSED=$((TESTS_PASSED+1)); echo -e "  ${GREEN}PASS${NC} cross-folder notes stay independent (no merge)"; } || \
     { TESTS_FAILED=$((TESTS_FAILED+1)); echo -e "  ${RED}FAIL${NC} cross-folder notes stay independent (no merge)"; }
 
+# --- Prompt content assertions (the rules that govern model behavior) ---
+prompt_file="$REPO_DIR/scripts/lib/diary-maintain-prompt.txt"
+assert_file_contains "$prompt_file" "HARD RULE on wikilinks" \
+    "prompt forbids broken wikilink targets"
+assert_file_contains "$prompt_file" "RELATED notes" \
+    "prompt distinguishes related-but-distinct from merge candidates"
+assert_file_contains "$prompt_file" "within a single folder AND across folders" \
+    "prompt extends 2c cross-linking to within-folder related notes"
+assert_file_contains "$prompt_file" "DO NOT touch the legacy" \
+    "prompt forbids editing the legacy Synthesis/ folder, not just writing new files"
+
 # --- Events log ---
 assert_file_contains "$tmp/.diary-events.log" '"result":"maintained"' "events.log records maintained result"
 assert_file_contains "$tmp/.diary-events.log" '"kind":"maintain"'     "events.log tags entry as maintain"

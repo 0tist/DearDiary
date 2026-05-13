@@ -50,9 +50,16 @@ OPERATION 2 — CONSOLIDATE (rename + merge + cross-link)
 Goal: keep the vault from accumulating timestamped, duplicate, and
 orphaned notes. Three sub-operations, applied to notes shown above.
 
-DO NOT write to the legacy {{DIARY_ROOT}}/Synthesis/ folder. Standalone
-synthesis pages are not produced anymore — consolidation happens inside
-the canonical folders themselves.
+DO NOT touch the legacy {{DIARY_ROOT}}/Synthesis/ folder. Don't create
+new files there; don't edit existing files there. Standalone synthesis
+pages are deprecated — consolidation happens inside the canonical
+folders themselves.
+
+HARD RULE on wikilinks: every `[[link]]` you emit must resolve to a
+file that actually exists in the vault (use the renamed slug, not the
+old timestamped stem, and never invent a target that isn't there). If
+the link would 404, either rename the file to that slug first (2a),
+write the target as part of a merge (2b), or skip the link entirely.
 
 ------------------------------------------------------------
 2a. RENAME timestamped filenames (unconditional)
@@ -72,12 +79,26 @@ file via `mv` to <slug>.md.
 - Don't rename files that already have descriptive slugs.
 
 ------------------------------------------------------------
-2b. MERGE within a folder (≥80% confidence)
+2b. MERGE within a folder (high threshold — same idea, near-duplicate)
 ------------------------------------------------------------
 
-Identify clusters of ≥2 notes in the SAME canonical folder that are
-clearly about the same topic. Threshold: ≥80% confident — uncertain
-clusters stay separate.
+ONLY merge when ≥2 notes in the SAME canonical folder are essentially
+the SAME idea — the user wrote the same thought twice, or two notes
+cover overlapping ground with no distinct angle. Threshold: high. If
+each note has its own substantive angle, paper, hypothesis, or
+estimate, that's NOT a merge candidate — those are RELATED notes
+(see 2c below).
+
+Examples of merge candidates:
+  ✓ Two Ideas notes both about "microgreens automation at home" with
+    overlapping content — merge.
+  ✓ Three Daily/ entries from the same day captured by accident — merge.
+
+Examples that are NOT merge candidates (use 2c instead):
+  ✗ Three Ideas notes that each propose a DIFFERENT research approach
+    (TTA, cross-modality, optimal control) to the same underlying
+    goal — these are related angles, not duplicates. KEEP them separate
+    and cross-link via 2c.
 
 For each cluster:
 
@@ -108,27 +129,37 @@ For each cluster:
    shows the stub), and the stub points readers at the canonical.
 
 ------------------------------------------------------------
-2c. CROSS-FOLDER WIKILINK (don't merge — just connect)
+2c. WIKILINK related notes (within OR across folders — don't merge)
 ------------------------------------------------------------
 
-When a note in one folder is clearly about the same topic as a note in a
-DIFFERENT canonical folder (e.g. Projects/<x> and Ideas/<x>), DON'T
-merge them. Add bidirectional wikilinks via short labeled blockquotes,
-placed right after the `## For future Claude` preamble.
+When ≥2 notes are clearly RELATED (touch the same topic area, same
+project, same entity, or are different angles on one underlying
+problem) but are NOT merge candidates per 2b, add bidirectional
+wikilinks. This applies BOTH within a single folder AND across folders.
 
-Recommended labels:
+Place the wikilink as a short labeled blockquote immediately after the
+`## For future Claude` preamble of each related note (mutually — every
+member of the cluster links to every other member).
 
-- A later-stage note pointing back to its origin idea/note:
-      > Origin: [[Ideas/<x>]]
-- An earlier-stage note pointing forward to what it became:
-      > Became: [[Projects/<x>]]   (or  > Decided: [[Decisions/<x>]] )
-- Same-tier or unclear direction:
-      > See also: [[<other-stem>]]
+Recommended labels (pick what fits the relationship):
+
+- Cross-folder, later-stage note pointing back to its origin:
+      > Origin: [[<earlier-slug>]]
+- Cross-folder, earlier-stage note pointing forward:
+      > Became: [[<later-slug>]]    or  > Decided: [[<decision-slug>]]
+- Same-folder or unclear-direction, related angles:
+      > See also: [[<other-slug>]]
+- Multiple related siblings:
+      > Related: [[<a>]], [[<b>]]
 
 DO NOT trigger the `graduate` skill behavior here. Maintain only adds
-wikilinks and a one-line label — it never creates new project scaffolding,
-never copies content between folders, never deletes the originals. The
-two notes stay independent, just visibly linked.
+wikilinks and a one-line label — it never creates new project
+scaffolding, never copies content between folders, never deletes
+notes. The notes stay independent files, just visibly linked.
+
+Wikilink targets MUST resolve (see HARD RULE above). If you've renamed
+a file as part of 2a, every link must use the new slug, not the old
+timestamped stem.
 
 ------------------------------------------------------------
 OUTPUT
