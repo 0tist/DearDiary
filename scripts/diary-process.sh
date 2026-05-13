@@ -11,9 +11,12 @@ set -u
 
 TRIGGER="${1:-cron}"
 DEARDIARY_DIR="${DEARDIARY_DIR:-$HOME/DearDiary}"
-DIARY_ROOT="$DEARDIARY_DIR/diary"
-INBOX_DIR="$DIARY_ROOT/inbox"
-PROCESSED_DIR="$DIARY_ROOT/processed"
+# DIARY_ROOT means "vault root, where canonical folders live" — same
+# semantics as diary-maintain.sh. INBOX_DIR + PROCESSED_DIR are the
+# DearDiary-owned working dirs underneath, inside diary/.
+DIARY_ROOT="$DEARDIARY_DIR"
+INBOX_DIR="$DEARDIARY_DIR/diary/inbox"
+PROCESSED_DIR="$DEARDIARY_DIR/diary/processed"
 TODO_FILE="$DEARDIARY_DIR/TODO.md"
 LOCK_DIR="$DEARDIARY_DIR/.diary-process.lock.d"
 EVENT_LOG="$DEARDIARY_DIR/.diary-events.log"
@@ -76,8 +79,12 @@ phase_b() {
 
     # Workspace tree: existing top-level folders under diary root, excluding
     # inbox/ (uninteresting). Use ls instead of `tree` (not always installed).
-    workspace_tree=$(cd "$DIARY_ROOT" && ls -1 | grep -v '^inbox$' | sed 's/^/- /' || true)
-    [ -z "$workspace_tree" ] && workspace_tree="(no folders yet — first run)"
+    # Top-level canonical folders only; hide DearDiary-internal `diary/`
+    # and Obsidian's `.obsidian/` from the listing claude sees.
+    workspace_tree=$(cd "$DIARY_ROOT" && ls -1d */ 2>/dev/null \
+        | grep -Ev '^(diary|\.obsidian|node_modules)/$' \
+        | sed 's|/$||; s|^|- |')
+    [ -z "$workspace_tree" ] && workspace_tree="(no top-level folders yet)"
 
     # Inbox listing: file paths + first few lines of each, so claude has
     # context without us needing a separate Read call per file.
@@ -107,6 +114,7 @@ phase_b() {
     prompt=$(cat "$PROMPT_TEMPLATE")
     prompt="${prompt//\{\{NOW\}\}/$now}"
     prompt="${prompt//\{\{DIARY_ROOT\}\}/$DIARY_ROOT}"
+    prompt="${prompt//\{\{PROCESSED_DIR\}\}/$PROCESSED_DIR}"
     prompt="${prompt//\{\{TODO_FILE\}\}/$TODO_FILE}"
     prompt="${prompt//\{\{WORKSPACE_TREE\}\}/$workspace_tree}"
     prompt="${prompt//\{\{INBOX_LISTING\}\}/$inbox_listing}"

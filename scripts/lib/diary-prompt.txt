@@ -66,8 +66,11 @@ PROCEDURE — for EACH file in the inbox listing
      target note may not exist yet — that's fine, Obsidian creates a stub).
 4. If the entry contains an actionable TODO, edit {{TODO_FILE}} to append the
    bullet to `## Active`.
-5. Move the inbox original to {{DIARY_ROOT}}/processed/ via `mv`. The processed
+5. Move the inbox original to {{PROCESSED_DIR}} via `mv`. The processed
    copy stays as-is (no frontmatter changes) — it's the audit trail.
+   Note: {{DIARY_ROOT}} is the VAULT ROOT (where Ideas/, Projects/ etc.
+   live). The inbox and processed/ are DearDiary-internal and live one
+   level down under diary/.
 6. Print exactly one line to stdout: `<id> -> <relative-destination>`
 
 RULES

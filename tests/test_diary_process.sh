@@ -52,13 +52,18 @@ fake_script="$tmp/fake-claude.sh"
 cat > "$fake_script" <<'EOF'
 #!/usr/bin/env bash
 set -u
-DIARY_ROOT="${DEARDIARY_DIR:-$HOME/DearDiary}/diary"
-mkdir -p "$DIARY_ROOT/journal" "$DIARY_ROOT/processed"
+# DIARY_ROOT in the prompt now means the VAULT ROOT (where canonical
+# folders live). Inbox + processed/ are DearDiary-internal, one level
+# down under diary/. Files get FILED at the vault root.
+VAULT_ROOT="${DEARDIARY_DIR:-$HOME/DearDiary}"
+INBOX="$VAULT_ROOT/diary/inbox"
+PROCESSED="$VAULT_ROOT/diary/processed"
+mkdir -p "$VAULT_ROOT/journal" "$PROCESSED"
 shopt -s nullglob
-for f in "$DIARY_ROOT/inbox"/*.md; do
+for f in "$INBOX"/*.md; do
     id=$(basename "$f" .md)
-    cp "$f" "$DIARY_ROOT/journal/$id.md"
-    mv "$f" "$DIARY_ROOT/processed/$id.md"
+    cp "$f" "$VAULT_ROOT/journal/$id.md"
+    mv "$f" "$PROCESSED/$id.md"
     echo "$id -> journal/$id.md"
 done
 EOF
@@ -80,8 +85,8 @@ assert_eq "$inbox_count" "0" "inbox emptied"
 processed_count=$(find "$tmp/diary/processed" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')
 assert_eq "$processed_count" "2" "two files in processed/"
 
-journal_count=$(find "$tmp/diary/journal" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')
-assert_eq "$journal_count" "2" "two files in journal/"
+journal_count=$(find "$tmp/journal" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+assert_eq "$journal_count" "2" "two files in journal/ at vault root (not inside diary/)"
 
 assert_file_contains "$tmp/.diary-events.log" '"result":"processed"' "events.log records processed result"
 assert_file_contains "$tmp/.diary-events.log" '"count":2' "events.log records count=2"
