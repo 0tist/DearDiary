@@ -25,6 +25,7 @@ PascalCase folders over lowercase or invented variants:
 
 - `Ideas/`      — captures, hunches, things to explore later
 - `Projects/`   — active and in-flight work
+- `Tasks/`      — atomic actionables (deardiary-fixer files deferred items here)
 - `Decisions/`  — choices made, with reasoning (ADR-style)
 - `Daily/`      — date-stamped journal entries
 - `Research/`   — external research, dossiers, citations

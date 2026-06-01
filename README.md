@@ -131,8 +131,8 @@ confidence: low|medium|high   # only when entry makes uncertain claims
 [[wikilinks]] for every person/project/concept referenced.
 ```
 
-Canonical folders: `Ideas/`, `Projects/`, `Decisions/`, `Daily/`,
-`Research/`. New PascalCase folders allowed when nothing fits.
+Canonical folders: `Ideas/`, `Projects/`, `Tasks/`, `Decisions/`,
+`Daily/`, `Research/`. New PascalCase folders allowed when nothing fits.
 
 The vault-level operating manual at `~/DearDiary/_CLAUDE.md` is the
 authoritative reference; any Claude session entering `~/DearDiary/`

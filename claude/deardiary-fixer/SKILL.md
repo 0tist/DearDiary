@@ -19,7 +19,7 @@ The diary entry is about THIS repo if it mentions:
 - changes phrased in repo-engineering terms ("update the gitignore",
   "the install script should also …", "the prompt should mention …")
 
-If unsure, file the entry under `diary/tasks/` and DO NOT open a PR. A wrong
+If unsure, file the entry under `Tasks/` and DO NOT open a PR. A wrong
 PR is worse than no PR — the user can re-trigger by being more explicit.
 
 ## What to do
@@ -95,7 +95,8 @@ PR is worse than no PR — the user can re-trigger by being more explicit.
    git -C ~/Development/for_fun/DearDiary switch main
    ```
 
-9. **File the diary entry** to `~/DearDiary/diary/tasks/<id>.md` with
+9. **File the diary entry** to `~/DearDiary/Tasks/<id>.md` (vault-root
+   canonical folder — NOT `diary/tasks/` which used to be the path) with
    frontmatter additions:
    - `routed_to: tasks`
    - `pr_url: <url returned by gh>`
@@ -113,7 +114,7 @@ PR is worse than no PR — the user can re-trigger by being more explicit.
 - If the change touches `install.sh` / `uninstall.sh` / `scripts/*.sh`, also
   add or update a `tests/test_*.sh` that covers it.
 - If you can't reasonably make the change (need user input, requires manual
-  testing, scope creep, ambiguous), file to `diary/tasks/` with a note and
+  testing, scope creep, ambiguous), file to `Tasks/` with a note and
   do NOT open a PR. Append a TODO instead so the user can decide.
 
 ## Output

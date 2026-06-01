@@ -16,7 +16,7 @@ assert_file_contains "$skill_file" "diary-fix/"             "skill defines machi
 assert_file_contains "$skill_file" "gh pr create"           "skill opens PRs via gh CLI"
 assert_file_contains "$skill_file" "git -C"                 "skill uses git -C to avoid cd (bash allowlist)"
 assert_file_contains "$skill_file" "NEVER push to"           "skill forbids pushing to main directly"
-assert_file_contains "$skill_file" "tasks/"                 "skill files entries under tasks/"
+assert_file_contains "$skill_file" "Tasks/"                 "skill files entries under vault-root Tasks/"
 
 # 3. Diary processor allowlist permits git + gh
 assert_file_contains "$repo_dir/scripts/diary-process.sh" "Bash(git:*)" "diary-process.sh allows git"
