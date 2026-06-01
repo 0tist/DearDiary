@@ -9,6 +9,11 @@
 
 set -u
 
+# Append common user/Homebrew install dirs so `claude` resolves when
+# spawned from contexts without an interactive shell PATH (Tauri .app
+# from the Dock, etc.). Append so test fakes earlier on PATH still win.
+export PATH="$PATH:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin"
+
 TRIGGER="${1:-cron}"
 DEARDIARY_DIR="${DEARDIARY_DIR:-$HOME/DearDiary}"
 DIARY_ROOT="$DEARDIARY_DIR"

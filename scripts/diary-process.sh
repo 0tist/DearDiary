@@ -9,6 +9,14 @@
 
 set -u
 
+# Append common user/Homebrew install dirs to PATH so `claude` (and other
+# tools) resolve when this script is spawned from contexts that don't
+# inherit an interactive shell PATH — e.g. the Tauri .app launched from
+# the Dock, or a future launchd run that doesn't list these paths.
+# Append (don't prepend) so anything already on PATH (incl. test fakes)
+# wins.
+export PATH="$PATH:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin"
+
 TRIGGER="${1:-cron}"
 DEARDIARY_DIR="${DEARDIARY_DIR:-$HOME/DearDiary}"
 # DIARY_ROOT means "vault root, where canonical folders live" — same
