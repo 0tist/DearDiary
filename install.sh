@@ -120,7 +120,7 @@ mkdir -p "$DIARY_DIR/inbox" "$DIARY_DIR/processed"
 echo "    ensured $DIARY_DIR/{inbox,processed}/"
 
 # 3c. Render and install launchd plist for the diary inbox processor.
-# Runs scripts/diary-process.sh every 15 minutes. The Tauri app's "Process Now"
+# Runs scripts/diary-process.sh every 15 minutes. The Tauri app's "Process"
 # button hits the same script directly, so cron is just a safety net.
 LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
 PLIST_NAME="com.deardiary.process.plist"

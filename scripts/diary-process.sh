@@ -2,7 +2,7 @@
 # diary-process.sh [cron|button]
 #
 # Phase A (default): fork Phase B in background, return instantly. Used by
-#   launchd (cron) and by the Tauri app's "Process Now" button.
+#   launchd (cron) and by the Tauri app's "Process" button.
 # Phase B (DIARY_PROCESS_PHASE=B): acquire flock, build prompt from inbox,
 #   shell out to `claude -p` with a tight tool allowlist; Claude itself
 #   reads/writes/moves the diary files.

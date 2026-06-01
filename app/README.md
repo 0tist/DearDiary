@@ -4,7 +4,7 @@ Always-open compose window. Type a thought, hit Save (or Cmd+Enter), and the
 entry lands in `~/DearDiary/diary/inbox/<id>.md`. Every 15 minutes a launchd
 job hands the inbox to a headless `claude -p` run that decides where each
 entry belongs (`~/DearDiary/diary/<folder>/...`, optionally appending to
-`~/DearDiary/TODO.md`). The "Process Now" button fires the same job
+`~/DearDiary/TODO.md`). The "Process" button fires the same job
 on-demand.
 
 ## Prerequisites
@@ -35,7 +35,7 @@ the app alive (it just hides) so it stays in your app deck. Cmd+Q quits.
 ## Bake the repo path at build time
 
 The Rust binary needs to know where this repo is on your machine so it can
-spawn `scripts/diary-process.sh` when you click **Process Now**. Bake the
+spawn `scripts/diary-process.sh` when you click **Process**. Bake the
 absolute path in at build time:
 
 ```bash

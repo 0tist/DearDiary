@@ -18,7 +18,7 @@ You type into the Dock window     ──►  diary/inbox/<id>.md
                                        ▼
                               diary-process.sh
                               (cron every 15 min,
-                               or "Process Now" button)
+                               or "Process" button)
                                        │
                                        ▼
                               claude -p (headless)
@@ -158,12 +158,12 @@ reads it first.
 
 ### Tauri compose window (`app/`)
 
-Always-open Dock app. Textarea + Save + Process Now. Closing hides
+Always-open Dock app. Textarea + Save + Process. Closing hides
 (keeps app live in the Dock); Cmd+Q quits.
 
 - Build: see [`app/README.md`](app/README.md)
 - Saves to `~/DearDiary/diary/inbox/<id>.md` atomically
-- "Process Now" shells out to `scripts/diary-process.sh button`
+- "Process" shells out to `scripts/diary-process.sh button`
 
 ### Inbox processor (`scripts/diary-process.sh`)
 
