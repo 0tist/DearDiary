@@ -74,26 +74,35 @@ fn save_entry(text: String) -> Result<SaveResult, String> {
 
 #[tauri::command]
 fn process_now() -> Result<(), String> {
+    spawn_script("diary-process.sh")
+}
+
+#[tauri::command]
+fn maintain_now() -> Result<(), String> {
+    spawn_script("diary-maintain.sh")
+}
+
+/// Shared helper for the two on-demand cron triggers. Phase A returns
+/// immediately; Phase B forks in the background.
+fn spawn_script(name: &str) -> Result<(), String> {
     let repo = repo_dir().ok_or_else(|| {
         "DEARDIARY_REPO not set; rebuild the app with the repo path baked in or export it"
             .to_string()
     })?;
-    let script = repo.join("scripts").join("diary-process.sh");
+    let script = repo.join("scripts").join(name);
     if !script.exists() {
         return Err(format!("missing {}", script.display()));
     }
     Command::new(&script)
         .arg("button")
         .spawn()
-        .map_err(|e| format!("spawn diary-process.sh: {e}"))?;
-    // Detached: don't wait, don't capture. The script's Phase A returns
-    // immediately and forks Phase B in the background.
+        .map_err(|e| format!("spawn {name}: {e}"))?;
     Ok(())
 }
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![save_entry, process_now])
+        .invoke_handler(tauri::generate_handler![save_entry, process_now, maintain_now])
         .on_window_event(|window, event| {
             // Closing the window hides it instead of quitting, so the app
             // stays alive in the Dock as the user expects. Cmd+Q still quits.

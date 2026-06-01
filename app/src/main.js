@@ -4,6 +4,7 @@ const invoke = window.__TAURI__?.core?.invoke;
 const entry = document.getElementById("entry");
 const saveBtn = document.getElementById("save");
 const processBtn = document.getElementById("process");
+const maintainBtn = document.getElementById("maintain");
 const statusEl = document.getElementById("status");
 
 function fmtTime(d) {
@@ -47,8 +48,22 @@ async function processNow() {
   }
 }
 
+async function maintainNow() {
+  if (!invoke) return;
+  maintainBtn.disabled = true;
+  try {
+    await invoke("maintain_now");
+    setStatus("maintaining…");
+  } catch (e) {
+    setStatus(`error: ${e}`);
+  } finally {
+    maintainBtn.disabled = false;
+  }
+}
+
 saveBtn.addEventListener("click", save);
 processBtn.addEventListener("click", processNow);
+maintainBtn.addEventListener("click", maintainNow);
 entry.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
     e.preventDefault();
